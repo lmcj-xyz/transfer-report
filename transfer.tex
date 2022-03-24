@@ -1,0 +1,2965 @@
+\documentclass{article}
+
+\usepackage{a4wide}
+
+\usepackage[backend=biber, style=numeric, url=false, isbn=false, doi=false]{biblatex}  
+\AtEveryBibitem{%
+  \clearfield{note}%
+}
+\addbibresource{references.bib}
+
+\usepackage{hyperref}
+\hypersetup{
+    colorlinks,
+    linkcolor={red!50!black},
+    citecolor={blue!50!black},
+    urlcolor={blue!80!black}
+}
+\usepackage{kpfonts}
+\usepackage[T1]{fontenc}
+\usepackage{amsfonts}
+\usepackage{amsmath}
+\usepackage{xcolor}
+\usepackage{BOONDOX-cal}
+\usepackage{graphicx}
+\graphicspath{{./pictures/}}
+\usepackage{subcaption}
+\usepackage{booktabs}
+\usepackage{bbm}
+\usepackage{nicefrac}
+\usepackage[capitalise]{cleveref}
+\usepackage{mathtools}
+
+
+\newtheorem{definition}{Definition}
+\newtheorem{theorem}{Theorem}
+\newtheorem{assumption}{Assumption}
+\newtheorem{remark}{Remark}
+
+\author{Author:
+\\
+Luis Mario Chaparro Jáquez
+\\
+201481193
+\\[10pt]
+Supervisors:
+\\
+Dr. Elena Issoglio
+\\
+Dr. Jan Palczewski}
+\title{\includegraphics[width=0.3\textwidth]{uol.png}\\[10pt]Transfer report\\
+{\Large Theoretical Analysis of Numerical Schemes for Stochastic (Partial) Differential Equations}\\
+{\color{violet}v1.1}}
+\date{January 2022}
+\begin{document}
+\maketitle
+\thispagestyle{empty}
+\newpage
+
+Changes on v1.1.
+\begin{itemize}
+\item
+Corrections by Dr. Lanpeng Ji and Dr. Martín López García have been included in
+{\color{violet}violet}.
+\item
+Package
+\texttt{hyperref}
+included to have a browsable PDF and links within the document.
+\end{itemize}
+
+\tableofcontents
+
+\section{Overview}
+Stochastic Differential Equations (SDEs) are widely used tools in fields such as finances, neuroscience and engineering.
+They help to model behaviours in systems with certain level of noise, or randomness, that deterministic methods cannot model.
+
+%Numerical schemes strong convergence for SDEs with low regularity coefficients have been widely studied, examples of it are
+%\cite{butkovsky_approximation_2021,
+%dareiotis_regularisation_2020,
+%dareiotis_quantifying_2021,
+%de_angelis_numerical_2020,
+%flandoli_multidimensional_2016}.
+
+The works from De Angelis et al.
+\cite{de_angelis_numerical_2020},
+and Flandoli et al.
+\cite{flandoli_multidimensional_2016}
+have established the framework for this project.
+A one dimensional SDE is considered:
+
+\begin{equation}
+\begin{cases}
+dX_t = b(t, X_t) dt + dW_t,
+\quad
+t \in [0, T],
+\\
+X_0 = x_0,
+\end{cases}
+\label{eq:dist_sde}
+\end{equation}
+where $W$ is a Brownian motion, and $b(t, \cdot)$ is a distribution taking values in a fractional Sobolev space of negative order, namely
+$H^{-s}_{q}(\mathbb{R})$ as defined in
+\cref{def:sobolev_frac}.
+
+This type of equations immediately introduce a challenge because the coefficient $b$ can not be evaluated pointwise and it is necessary to give a meaning to the term
+$\int_{0}^{t} b(s, X_s) ds$.
+This problem is solved in \cite{flandoli_multidimensional_2016}, and then in \cite{de_angelis_numerical_2020} an algorithm for the one dimensional version of the problem is described.
+The algorithm proposed has two steps for it to produce the numerical solutions:
+
+\begin{enumerate}
+\item
+First the coefficient
+$b$
+in
+\eqref{eq:dist_sde}
+is approximated to be able to work numerically with it using a sum of Haar functions and then submitted to a smoothing procedure
+applying the heat kernel as in
+\cref{def:heat}
+via convolution. This is described in Section 4.
+%\begin{equation}
+%P_{\eta_{N}} \mathbbm{1}_{[x_1, x_2)} = \exp(-\eta_{N})\left( \Phi \left( \frac{x_{2} - x}{\sqrt{\eta_{N}}} \right) - \Phi \left( \frac{x_{1} - x}{\eta_{N}} \right)
+%\label{eq:semig_gen}
+%\end{equation}
+\item
+And finally applying the Euler-Maruyama scheme for the approximation of coefficient
+$b$
+as discussed in Section 5.
+\end{enumerate}
+
+We implemented the same process with good results for the Euler scheme, and
+{\color{violet}as an addition,}
+attempted to use a scheme with higher order of convergence, namely the 1.5 strong scheme
+{\color{violet}which conveniently for weak convergence result coincides with the 2.0 weak scheme}.
+In the latter we did not achieve good results, however this is an scheme that has not been studied theoretically for this type of equations and even with desirable results the link between the original problem and the numerical scheme would be unclear.
+
+Further we have a brief introduction to the theory of Backward SDEs (BSDEs) and Forward-Backward SDEs 
+{\color{violet}(FBSDEs)},
+since the following steps are to develop the theory for numerical schemes of BSDEs and FBSDEs.
+
+The report is organised as follows:
+In Section 2 we have the definition of SDEs and conditions for uniqueness of solutions. Section 3 is the introduction of the classical theory on numerical schemes for SDEs, introducing several different schemes, modes of convergence and an example for an SDE with analytical solution, in order to try the numerical schemes discussed.
+Section 4 presents the theory necessary to understand the approximation of the distributional coefficient
+$b$,
+and in Section 5 we have a review of the theoretical results from
+\cite{de_angelis_numerical_2020}
+and the numerical implementations concerning those results.
+Finally the short review about BSDEs and FBSDEs in Section 6.
+
+\section{Background material on SDEs}
+Let
+\begin{align}
+b(t, x):[0, \infty)\times\mathbb{R}
+&\to 
+\mathbb{R},
+\label{eq:coeff_b_rd}
+\\
+\sigma(t,x):[0, \infty)\times\mathbb{R}
+&\to
+\mathbb{R}
+,
+\label{eq:coeff_sigma_rd}
+\end{align}
+be Borel measurable functions and
+$W = \{W_t; 0 < t < \infty\}$
+be a Brownian motion.
+For $T>0$ consider the following Stochastic Differential Equation (SDE)
+\begin{equation}
+X_t = x_0 +
+\int_{0}^{t} b(s, X_s) ds +
+\int_{0}^{t} \sigma(s, X_s) dW_s,
+\quad
+t \in [0,T],
+\quad
+x_0 \in \mathbb{R}
+.
+\label{eq:int_sde}
+\end{equation}
+Often for ease of notation we can refer to
+\eqref{eq:int_sde}
+as
+\begin{equation}
+\begin{cases}
+dX_t
+= b(t, X_t) dt
++ \sigma(t, X_t) dW_t,
+&\quad
+t \in [0, T]
+\\
+X_0 = x_0,
+&\quad
+x_0 \in \mathbb{R}.
+\end{cases}
+\label{eq:gen_sde}
+\end{equation}
+However this last equation is just notation and it is always intended to represent
+\eqref{eq:int_sde}.
+Let us note that usually the coefficients
+$b(t,x)$
+and
+$\sigma(t,x)$
+are called drift and diffusion coefficients, respectively.
+\begin{definition}[Strong solution {{\cite[Definition 5.2.1]{karatzas_brownian_1991}}}]
+Let
+$(\Omega,\mathcal{F},
+{\color{violet}\mathbb{F}},
+\mathbb{P})$
+be a
+{\color{violet}filtered}
+probability space, we call a
+\textit{strong solution}
+of equation
+\eqref{eq:int_sde}
+a
+{\color{violet}$\mathbb{F}$-adapted,}
+continuous,
+$\mathbb{R}$-valued
+stochastic process
+$(X_t)_{t \in [0, \infty)}$
+such that
+$\mathbb{P}[X_0 = x_0] = 1$,
+and
+\eqref{eq:int_sde}
+holds almost surely for every
+$t \geq 0$.
+\end{definition}
+
+%\subsubsection{Existence and uniqueness}
+%For the equation posed and its respective solution as previously defined, it is natural to study the existence and uniqueness of the solutions.
+The following theorem states sufficient conditions for the existence and uniqueness for a solution of the SDE.
+
+\begin{theorem}
+[{{\cite[Theorem 5.2.9]{karatzas_brownian_1991}}}]
+Suppose that there exists a constant
+$K \geq 0$
+such that for all
+$x,y \in \mathbb{R}$
+and
+$t \geq 0$,
+\begin{align}
+| b(t, x) - b(t, y) |
++ | \sigma(t, x) - \sigma(t, y) |
+&\leq
+K | x - y |,
+\label{eq:lipz}
+\\
+| b(t, x) |
++ | \sigma(t, x) |
+&\leq
+K(1 + | x |).
+\label{eq:lin_g}
+\end{align}
+Then there
+{\color{violet}exists}
+a continuous,
+{\color{violet}$\mathbb{F}$-adapted}
+process
+$X = (X_t)_{t \in [0, \infty)}$
+which is a strong solution to equation
+\eqref{eq:gen_sde}.
+This solution is unique up to indistinguishability, i.e: if
+$\tilde{X}$
+is also a strong solution then
+$\mathbb{P}(X_t = \tilde{X}_t;\, \forall 0 \leq t
+{\color{violet}<}
+\infty) = 1$.
+
+\label{th:lipz_lin}
+\end{theorem}
+
+%\subsubsection{Singular SDEs}
+
+
+\section{Numerical schemes for SDEs}
+As in the deterministic theory of Differential Equations, most of the equations have no closed form solution, so that it becomes natural to develop numerical schemes to treat such objects which arise in a variety of problems.
+
+\subsection{Itô-Taylor expansions}
+In order to construct numerical schemes to solve SDEs, one can use a procedure that is an analogous to the Taylor expansion used in ODEs.
+Said procedure is called \textit{Itô-Taylor expansion} and is presented in the following theorem whose further study can be found in
+\cite[Chapter 5]{kloeden_numerical_1999}.
+In order to introduce the theorem, let us set some notation.
+%\begin{remark}
+%In the following results we focus in coefficients
+%$b:\mathbb{R} \to \mathbb{R}$
+%and
+%$\sigma:\mathbb{R} \to \mathbb{R}$
+%instead of the general setting proposed in equations
+%\eqref{eq:coeff_b_rd}
+%and
+%\eqref{eq:coeff_sigma_rd}
+%this is because the equations for which the numerical scheme has been developed and tested are 1-dimensional.
+%Following as well the presentation of the results in
+%\cite{kloeden_numerical_1999}.
+%\end{remark}
+
+\begin{definition}[Multi-indices]
+We call a row vector
+\begin{equation}
+\alpha = (j_1,...,j_l)
+\end{equation}
+where
+\begin{equation}
+j_i \in \{0, 1\}
+\end{equation}
+a multi-index with length
+$l:=l(\alpha)\in\{1,2,...\}$.
+We denote the set of all multi-indices as
+$\mathcal{M}$.
+
+We denote by
+$v$
+to the multi-index with length zero, i.e:
+$l(v) = 0$, and
+$-\alpha$
+and
+$\alpha-$
+the multi-indices obtained by removing the first and last element, respectively, of
+$\alpha$.
+Also
+$n := n(\alpha) \in \{0,1,2,...,
+{\color{violet}l(\alpha)}
+\}$
+is the amount of elements equal to zero in the multi-index.
+\end{definition}
+%Let us remind that
+%$m$
+%is the number of entries that the Wiener process driving our equation has.
+%We are only interested in
+%$\mathbb{R}$-valued solutions for the equation, and also on Wiener processes with
+%$m=1$.
+%Then let us define:
+%\begin{definition}
+%Let
+%$\mathcal{M}^1 \subset \mathcal{M}$
+%the subset of multi-indices
+%\begin{equation}
+%\mathcal{M}^1 = \{ \alpha = (j_1,...,j_l): j_i \in \{0,1\} \quad \forall \quad i = 1,...,l \}.
+%\end{equation}
+%for all
+%$l\in\mathbb{N}$.
+%\end{definition}
+
+\begin{definition}[Hierarchical sets]
+A subset
+$\mathcal{A} \subset \mathcal{M}$
+is called a hierarchical set if:
+\begin{itemize}
+\item
+$\mathcal{A} \neq \emptyset$,
+\item
+$\sup_{\alpha \in \mathcal{A}} l(\alpha) < \infty$, and
+\item
+$-\alpha \in \mathcal{A}$
+for each
+$\alpha \in \mathcal{A} \setminus \{v\}$.
+\end{itemize}
+The remainder set
+$\mathcal{B(A)}$
+for any hierarchical set
+is given by
+\begin{equation}
+\mathcal{B(A)} = \{ \alpha \in \mathcal{M} \setminus \mathcal{A} : -\alpha \in \mathcal{A} \}.
+\end{equation}
+\end{definition}
+
+The definition of multiple Itô integrals can be obtained in a recursive way, as follows:
+
+\begin{definition}[Multiple Itô Integrals {{\cite[168,169]{kloeden_numerical_1999}}}]
+Let us denote by
+$\mathcal{H}$
+the set of all càdlàg processes
+$f = \{ f(t) \geq 0 \}$.
+Then let us define
+\begin{equation}
+\mathcal{H}_v = \{ f \in \mathcal{H} : \mathbb{P}\left[|f(t,\omega)| < \infty \quad \forall t \geq 0 \right] = 1 \},
+\end{equation}
+\begin{equation}
+\mathcal{H}_{(0)} = \left\{ f \in \mathcal{H} : \mathbb{P}\left[\int_0^t |f(t,\omega)| ds < \infty \quad \forall t \geq 0\right] = 1 \right\},
+\end{equation}
+\begin{equation}
+\mathcal{H}_{(1)} = \left\{ f \in \mathcal{H} : \mathbb{P}\left[\int_0^t |f(t,\omega)|^2 ds < \infty \quad \forall t \geq 0 \right] = 1 \right\}.
+\end{equation}
+The definition follows by recursion:
+Let
+$f\in\mathcal{H}_v$,
+then for
+$\alpha = v \in \mathcal{M}$,
+we define
+\begin{equation}
+I_v [f]_{0,t} = f.
+\end{equation}
+Assume
+$I_{\alpha-}$
+and
+$\mathcal{H}_{(\alpha-)-}$
+are defined.
+Then
+\begin{equation}
+I_\alpha[f(\cdot)]_{0,t} :=
+\begin{cases}
+\int_0^t I_{\alpha-}[f(\cdot)]_{0,t} ds &, \quad l \geq 1, j_l=0
+\\
+\int_0^t I_{\alpha-}[f(\cdot)]_{0,t} dW_s &, \quad l \geq 1, j_l=1
+\end{cases},
+\end{equation}
+where the set
+$\mathcal{H}_\alpha$
+is defined as
+\begin{equation}
+\mathcal{H}_\alpha = \{ f \in \mathcal{H} : I_{\alpha-}[f(\cdot)]_{0,t} \in \mathcal{H}_{(j_l)} \quad \forall t\geq0 \}.
+\end{equation}
+\end{definition}
+
+\begin{definition}[Itô Coefficient Functions {{\cite[177]{kloeden_numerical_1999}}}]
+Let us define the operators
+\begin{align}
+L^0 &= 
+\frac{\partial}{\partial t} +
+b(t,X_t) \frac{\partial}{\partial x} + 
+\frac{1}{2} \sigma^2(t,X_t) \frac{\partial^2}{\partial x^2}
+\label{eq:l0}
+\\
+L^1 &=
+\sigma(t,X_t) \frac{\partial}{\partial x}.
+\label{eq:l1}
+\end{align}
+Then for each multi-index
+$\alpha = (j_1,...,j_l)  \in \mathcal{M}$
+and a function
+$f \in C^{l(\alpha)+n(\alpha)}([0,T]\times\mathbb{R},\mathbb{R})$
+we define the Itô coefficient function
+\begin{equation}
+f_\alpha =
+\begin{cases}
+f &, \quad l=0
+\\
+L^{j_1}f_{-\alpha} &, \quad l \geq 1
+\end{cases}.
+\label{eq:coeff_functions}
+\end{equation}
+\end{definition}
+
+\begin{theorem}[Itô-Taylor expansion {{\cite[Theorem 5.5.1]{kloeden_numerical_1999}}}]
+Let
+$t \in [t_0,T]$,
+for any
+$t_0 \geq 0$.
+Let
+$\mathcal{A} \subset \mathcal{M}$
+be a hierarchical set, and let
+\begin{equation}
+f:[0,T]\times\mathbb{R} \to \mathbb{R},
+\end{equation}
+then the Itô-Taylor expansion
+\begin{equation}
+f(t, X_t) = \sum_{\alpha \in \mathcal{A}} I_\alpha[f_\alpha(t_0, X_{t_0})]_{0,t} + R,
+\label{eq:ito_taylor_full}
+\end{equation}
+holds provided all the derivatives of
+$f, b$
+and
+$\sigma$,
+and all Itô multiple integrals in
+\eqref{eq:ito_taylor_full}
+exist, and
+\begin{equation}
+R = \sum_{\alpha \in \mathcal{B(A)}} I_\alpha[f_\alpha(\cdot, X_\cdot)]_{0,t}.
+\end{equation}
+$R$
+is called the reminder of the expansion.
+\label{th:ito_taylor_exp}
+\end{theorem}
+
+The result above is the more general setting for the Itô-Taylor expansion, however, since the length of the multi-indices can go up to infinity, we have to leave the term
+$R$
+behind to approximate numerically the solutions to SDEs.
+This is done by selecting an appropriate set
+$\mathcal{A}$
+which will define the number of terms that the scheme will have.
+
+As an example, let us have
+$f(t,x) = x$
+and
+$\mathcal{A} = \{ v, (0), (1), (1, 1)\}$,
+then we will have the following coefficient functions according to
+\eqref{eq:coeff_functions}.
+Let us also recall that in what follows, for any function
+$f(t, x)$
+such that
+$x \mapsto f(t, x) \in C^{2}(\mathbb{R})$
+we will write
+$f' = \frac{\partial f}{\partial x}$
+and
+$f'' = \frac{\partial^2 f}{\partial x^2}$.
+\begin{align*}
+f_v &= x,
+\\
+f_{(0)} &= L^0 f_v = \left[\frac{\partial f}{\partial t} + b f' + \frac{1}{2} \sigma^2 f'' \right](t,X_t) = b(t,X_t),
+\\
+f_{(1)} &= L^1 f_v = \left[ \sigma f' \right](t,X_t) = \sigma(t,X_t),
+\\
+f_{(1,1)} &= L^1 ( L^1 f_v) = \left [L^1 \left(\sigma f'\right) \right](t,X_t) = \sigma \sigma'(t,X_t)
+\end{align*}
+and then the integrals
+\begin{align*}
+I_v[f_v(t_0, X_{t_0})]_{t_0,t} &= X_{t_0}
+\\
+I_{(0)}[f_{(0)}(t_0, X_{t_0})]_{t_0,t} &= b(t_0, X_{t_0}) \int_{t_0}^t ds
+\\
+I_{(1)}[f_{(1)}(t_0, X_{t_0})]_{t_0,t} &= \sigma(t_0, X_{t_0}) \int_{t_0}^t dW_s
+\\
+I_{(1,1)}[f_{(1,1)}(t_0, X_{t_0})]_{t_0,t} &= \sigma\sigma'(t_0, X_{t_0}) \int_{t_0}^t \int_{t_0}^s dW_r dW_s
+\end{align*}
+
+\subsection{Four numerical schemes}
+Given the Itô-Taylor expansion from
+\cref{th:ito_taylor_exp}
+then it is necessary to prove that leaving the remainder
+$R$
+behind allows a scheme to produce an acceptable approximation to the real solution.
+The derivation of numerical methods such as Euler-Maruyama and Milstein schemes, can be found in
+\cite[339-343]{glasserman_monte_2004}, and here we present the definitions as in
+\cite{kloeden_numerical_1999}.
+
+\begin{definition}
+Let
+$[0, T]$
+be a time interval, and
+$(t_n)^{N}_{n=0}$
+be a sequence of elements in
+$[0, T]$
+such that
+$0 = t_{0} < ... < t_{N} = T$,
+that is called a discretisation of the interval
+$[0,T]$.
+Let also denote
+\begin{equation}
+\Delta t_{n} = t_{n+1} - t_{n},
+\end{equation}
+then for a Brownian motion
+$(W_{t})_{t \geq 0}$,
+\begin{equation}
+\Delta W_n = W_{t_{n+1}} - W_{t_{n}},
+\end{equation}
+and by
+$\Delta U_n$
+the following multiple stochastic integral
+\begin{equation}
+\Delta U_{n} = I_{1,0}[1]_{t_n,t_{n+1}} = \int^{t_{n+1}}_{t_{n}} \int^{z}_{t_{n}} dW_{u} \, dz.
+\end{equation}
+Finally we will denote by
+$Y_n := Y_{t_n}$
+a discrete time approximation of
+$X_{t_n}$
+for any
+$n$.
+\label{def:discretisation}
+\end{definition}
+
+In the following definitions, for ease and clarity of notation we will write
+\begin{align}
+b &:= b(t,X_t),
+\\
+\sigma &:= \sigma(t,X_t),
+\end{align}
+since its dependency is clear from the context.
+Let us also note that in the numerical schemes we are using the function
+$f(t,x) = x$.
+
+%As it is stated in any book of numerical analysis, such as
+%\cite{iserles_first_1996}
+%and
+%\cite{kloeden_numerical_1999}
+%the Taylor expansion for an ODE would be:
+%
+%\begin{definition}[Taylor expansion]
+%Let $f$ and $X_t$ be real valued functions, and further
+%$f \in \mathcal{C}^{r+1}$.
+%One can have the following initial value problem (IVP):
+%\begin{equation}
+%\begin{cases}
+%\frac{d}{dt} X_t = a(X_t),
+%\quad
+%t \in [t_0, T],
+%\quad
+%0 \leq t_0 \leq T,
+%\\
+%X_{t_0} = x
+%\end{cases}
+%\label{eq:det_taylor}
+%\end{equation}
+
+%Then by the chain rule
+%\begin{equation}
+%%%\frac{d}{dt} f(X_t)
+%=
+%a(X_t) \frac{\partial}{\partial x} f(X_t).
+%\end{equation}
+%
+%Define an operato
+%\begin{equation}
+%L = a \frac{\partial}{\partial x}.
+%\label{eq:oper_l}
+%\end{equation}
+%
+%The Taylor expansion for the solution is
+%\begin{equation}
+%X_t = X_{t_0}
+%+ \sum_{\mathcal{l}=1}^{r}
+%\frac{(t - t_0)^\mathcal{l}}{\mathcal{l}!}
+%L^\mathcal{l} X_{t_0}
+%+ \int_{t_0}^{t} \cdots \int_{t_0}^{s_2}
+%L^{r+1} X_{s_1} ds_1 \dots ds_{r+1}
+%\end{equation}
+%
+%\end{definition}
+
+%For a Taylor expansion of an SDE, also called Itô-Taylor expansions, take the integral form of the generic SDE \eqref{eq:int_sde}, and follow a similar procedure applying Itô's formula instead of the chain rule.
+%Then the following definition states the simplest Itô-Taylor expansion:
+
+%\begin{definition}[Itô-Taylor expansion]
+
+%\end{definition}#
+
+\begin{definition}[Euler-Maruyama scheme {{\cite[Section 10.2]{kloeden_numerical_1999}}}]
+Let
+$(t_n)_{n=0}^{N}$
+be a discretisation of the interval
+$[0,T]$.
+Then an Euler-Maruyama approximation for the solution of
+\eqref{eq:gen_sde}
+at time $t_{n+1}$ is given by plugging the hierarchical set
+\begin{equation}
+\mathcal{A} = \{ v, (0), (1) \}
+\end{equation}
+into
+\eqref{eq:ito_taylor_full},
+i.e.
+\begin{equation}
+Y_{n+1} =
+Y_n + b \Delta t_n + \sigma \Delta W_n.
+\end{equation}
+\label{def:em_scheme}
+\end{definition}
+
+\begin{definition}[Milstein scheme {{\cite[Section 10.3]{kloeden_numerical_1999}}}]
+Let
+$(t_n)_{n=0}^N$
+be a discretisation of the interval
+$[0,T]$.
+Then a Milstein approximation for the solution of
+\eqref{eq:gen_sde}
+at time $t_{n+1}$ is given by plugging the hierarchical set
+\begin{equation}
+\mathcal{A} = \{ v, (0), (1), (1,1) \}
+\end{equation}
+into
+\eqref{eq:ito_taylor_full},
+i.e.
+\begin{equation}
+\hat{Y}_{n+1} =
+\hat{Y}_n + b \Delta t_n + \sigma \Delta W_n + \frac{1}{2} \sigma'\sigma ((\Delta W_n)^2 - \Delta t_n).
+\end{equation}
+\label{def:m_scheme}
+\end{definition}
+
+\begin{definition}[Order 1.5 strong Taylor scheme {{\cite[Section 10.4]{kloeden_numerical_1999}}}]
+Let
+$(t_n)_{n=0}^N$
+be a discretisation of the interval
+$[0,T]$.
+Then an order 1.5 strong approximation for the solution of
+\eqref{eq:gen_sde}
+at time $t_{n+1}$ is given by plugging the hierarchical set
+\begin{equation}
+\mathcal{A} = \{ v, (0), (1), (1,1), (0,1), (1,0), (0,0), (1,1,1) \}
+\end{equation}
+into
+\eqref{eq:ito_taylor_full},
+i.e.
+\begin{equation}
+\begin{split}
+\tilde{Y}_{n+1}
+&=
+\tilde{Y}_n + b \Delta t_n + \sigma \Delta W_n + \frac{1}{2} \sigma'\sigma \left((\Delta W_n)^2 - \Delta t_n \right)
+\\
+&\quad+
+b' \sigma \Delta U_n
++ \frac{1}{2} \left( bb' + \frac{1}{2} \sigma^2 b'' \right) \left(\Delta t_n \right)^2
+\\
+&\quad+
+\left( b \sigma' + \frac{1}{2} \sigma^2 \sigma'' \right) \left( \Delta W_{n} \Delta t_{n} - \Delta U_{n} \right)
+\\
+&\quad+
+\frac{1}{2} \left( \sigma^2 \sigma'' + \sigma(\sigma')^2 \right) \left( \frac{1}{3}(\Delta W_n)^2 - \Delta t_n \right) \Delta W_n.
+\end{split}
+\end{equation}
+\label{def:15_scheme}
+\end{definition}
+%{\color{red} instead of using $\Delta Z_n$ to use $I_{(1,0)}$ in a way that is clear in which interval is computed}
+
+\begin{definition}[Order 2.0 weak Taylor scheme {{\cite[Section 14.2]{kloeden_numerical_1999}}}]
+Let
+$(t_n)_{n=0}^N$
+be a discretisation of the interval
+$[0,T]$.
+Then an order 2.0 weak approximation for the solution of
+\eqref{eq:gen_sde}
+at time $t_{n+1}$ is given by plugging the hierarchical set
+\begin{equation}
+\mathcal{A} = \{ v, (0), (1), (1,1), (0,1), (1,0), (0,0) \}
+\end{equation}
+into
+\eqref{eq:ito_taylor_full},
+i.e.
+\begin{equation}
+\begin{split}
+\breve{Y}_{n+1}
+&=
+\breve{Y}_n + b \Delta t_n + \sigma \Delta W_n + \frac{1}{2} \sigma'\sigma \left((\Delta W_n)^2 - \Delta t_n \right)
+\\
+&\quad+
+b' \sigma \Delta U_n
++ \frac{1}{2} \left( bb' + \frac{1}{2} \sigma^2 b'' \right) \left(\Delta t_n \right)^2
+\\
+&\quad+
+\left( b \sigma' + \frac{1}{2} \sigma^2 \sigma'' \right) \left( \Delta W_{n} \Delta t_{n} - \Delta U_{n} \right).
+\end{split}
+\end{equation}
+\label{def:w2_scheme}
+\end{definition}
+
+Let us have
+$Z,\tilde{Z}$
+i.i.d. as
+$\mathcal{N}(0, 1)$.
+Then when it comes to numerical computations, for any
+$0 \leq s < z < t$,
+one can make use of the fact that
+$W_{t} - W_{s} \sim \mathcal{N}(0, t-s)$,
+and we can represent
+\begin{equation}
+W_{t} - W_{s}
+\quad\text{by}\quad
+\sqrt{t-s} Z,
+\label{eq:delta_w_num}
+\end{equation}
+and then as
+$\int^{t}_{s} \int^{z}_{s} dW_{u} \, dz \sim \mathcal{N}(0, \nicefrac{1}{3}(t - s)^3)$
+and
+\begin{equation}
+\mathbb{E}\left[\left(W_{t} - W_{s}\right)\left(\int^{t}_{s} \int^{z}_{s} dW_{u} \, dz\right)\right]=\frac{1}{2}(t - s)^2
+\end{equation}
+we will have
+\begin{equation}
+\int^{t}_{s} \int^{z}_{s} dW_{u} \, dz
+\quad\text{as}\quad
+\frac{1}{2} (t - s)\left(\sqrt{t - s}Z + \frac{1}{\sqrt{3}} \sqrt{t - s}\tilde{Z}\right).
+\label{eq:delta_u_num}
+\end{equation}
+Thus we have a way to plug the random variables
+$\Delta W_n$
+and
+$\Delta U_n$
+in the numerical implementations.
+The details for those representations can be found in
+\cite[169-172,351-352]{kloeden_numerical_1999}.
+
+Using the representations above let us denote two random vectors by
+$Z = (Z_{1},..., Z_{N})$
+and
+$\tilde{Z} = (\tilde{Z}_{1},..., \tilde{Z}_{N})$
+such that for all
+$n \in \{1,...,N\}$,
+$Z_n,\tilde{Z}_n \sim \mathcal{N}(0,1)$,
+then the
+$n$-th
+iteration of the schemes above are respectively
+\begin{align}
+&\begin{aligned}
+Y_{n+1}
+&=Y_n + b \Delta t_n + \sigma \sqrt{\Delta t_n}Z_{n+1},
+\end{aligned}
+\\
+&\begin{aligned}
+\hat{Y}_{n+1}
+&=\hat{Y}_n + b \Delta t_n + \sigma \sqrt{\Delta t_n}Z_{n+1} + \frac{1}{2} \sigma'\sigma \Delta t_n (Z_{n+1}^2 - 1),
+\end{aligned}
+\\
+&\begin{aligned}
+\tilde{Y}_{n+1}
+&=\tilde{Y}_n + b \Delta t_n + \sigma Z_{n+1} \sqrt{\Delta t_n} + \frac{1}{2} \sigma'\sigma \left(Z_{n+1}^{2} - 1 \right) \Delta t_n
+\\
+&\quad+
+\frac{1}{2} b' \sigma \left( Z_{n+1} + \frac{1}{\sqrt{3}} \tilde{Z}_{n+1} \right) (\Delta t_n)^{\nicefrac{3}{2}} + \frac{1}{2} \left( bb' + \frac{1}{2} \sigma^2 b'' \right) \left(\Delta t_n \right)^2
+\\
+&\quad+
+\frac{1}{2} \left( b \sigma' + \frac{1}{2} \sigma^2 \sigma'' \right) \left( Z_{n+1}\left( 1 - \frac{1}{2} \Delta t_n \right) - \frac{1}{2\sqrt{3}} \tilde{Z}_{n+1} \Delta t_n \right)\sqrt{\Delta t_n}
+\\
+&\quad+
+\frac{1}{2} \left( \sigma^2 \sigma'' + \sigma(\sigma')^2 \right) \left( \frac{1}{3} Z_{n+1}^3 - Z_{n+1} \right) (\Delta t_n)^{\nicefrac{3}{2}},
+\end{aligned}
+\\
+&\begin{aligned}
+\breve{Y}_{n+1}
+&=\breve{Y}_n + b \Delta t_n + \sigma Z_{n+1} \sqrt{\Delta t_n} + \frac{1}{2} \sigma'\sigma \left(Z_{n+1}^{2} - 1 \right) \Delta t_n
+\\
+&\quad+
+\frac{1}{2} b' \sigma \left( Z_{n+1} + \frac{1}{\sqrt{3}} \breve{Z}_{n+1} \right) (\Delta t_n)^{\nicefrac{3}{2}} + \frac{1}{2} \left( bb' + \frac{1}{2} \sigma^2 b'' \right) \left(\Delta t_n \right)^2
+\\
+&\quad+
+\frac{1}{2} \left( b \sigma' + \frac{1}{2} \sigma^2 \sigma'' \right) \left( Z_{n+1}\left( 1 - \frac{1}{2} \Delta t_n \right) - \frac{1}{2\sqrt{3}} \tilde{Z}_{n+1} \Delta t_n \right)\sqrt{\Delta t_n}.
+\end{aligned}
+\end{align}
+
+
+\subsection{Modes of convergence}
+Now that reasonable numerical approximations to the solutions of SDEs are given, it is necessary to check whether	said approximations will converge to the real solution of a given SDE.
+For this, we will discuss two forms of convergence that are usually of interest for numerical analysis of SDEs: strong and weak convergence.
+
+First, strong convergence will tell us how close the sample paths of the approximations are to the sample paths of the solution.
+Naturally the numerical verification of this mode of convergence requires the simulations of all the paths we want to compare, both from the solution and the approximation.
+
+\begin{definition}[Strong convergence {{\cite[Section 4]{platen_introduction_1999}}}]
+Let
+$(X_t)$
+be a strong solution of equation
+\eqref{eq:gen_sde}.
+We call
+$\gamma \in (0, \infty)$
+a strong convergence order of the discrete time approximation
+$(Y_n)$
+if for any discretisation
+$(t_{n})^{N}_{n=0}$
+of
+$[0, T]$
+% also let $T$ be a terminal time and $\{t_n\}_{n=0}^{N}$ a discretisation of the interval $[0, T]$ such that $t_{n+1} > t_n$ for all $n$, and denote the step size $\Delta t_n = t_{n+1} - t_n$.
+%It is said that $Y_n$ converges to $X_t$ in the strong sense with order
+%$\gamma \in (0, \infty)$
+there exists a constant $K < \infty$ such that
+\begin{equation}
+\mathbb{E} | X_T - Y_N | \leq K \left( \max_{n} \Delta t_n \right)^\gamma
+\label{eq:strong_conv}
+\end{equation}
+where
+$(Y_n)$
+is computed over the discretisation
+$(t_n)$.
+\end{definition}
+
+On the other hand, there are problems in which the condition for convergence can be relaxed because we might only be interested in the approximation of a function $f$ applied on the process $X_t$.
+Examples of such functions $f$ are the moments of the stochastic process that solves the equation considered.
+As mentioned by \cite{platen_introduction_1999}, for such situations it is possible to save computation time by defining another type of convergence in which we can compute only the approximations of the numerical solution and then compare it to a known value that has to be computed only once.
+For this purpose we define weak convergence.
+
+\begin{definition}[Weak convergence {{\cite[Section 4]{platen_introduction_1999}}}]
+Let
+$(X_t)$
+be a strong solution of equation
+\eqref{eq:gen_sde}.
+We call
+$\beta \in (0, \infty)$
+a weak convergence order of the discrete time approximation
+$(Y_n)$
+if for any
+$T$
+and
+$f$
+there is
+$M_{f} > 0$
+such that for any discretisation
+$(t_{n})^{N}_{n=0}$
+of
+$[0, T]$
+we have
+%Let $X_t$ be a solution of equation
+%\eqref{eq:gen_sde}
+%and $Y_n$ a discrete time approximation of $X_t$, also let $T$ be a terminal time and $\{t_n\}_{n=0}^{N}$ a discretization of the interval $[0, T]$ such that $t_{n+1} > t_n$ for all $n$, and denote the step size $\Delta t_n = t_{n+1} - t_n$, further let $f$ be a polynomial.
+%It is said that $Y_n$ converges to $X_t$ in the weak sense with order
+%$\beta \in (0, \infty)$
+%if there exists a constant $M_f < \infty$ such that
+\begin{equation}
+| \mathbb{E}[f(X_T)] - \mathbb{E}[f(Y_N)] | \leq M_f \left(\max_{n} \Delta t_n\right)^\beta
+\label{eq:weak_conv}
+\end{equation}
+where
+$(Y_n)$
+is computed over the discretisation
+$(t_n)$.
+\end{definition}
+
+For the present work we will be using equidistant time increments, therefore the conditions for convergence stated above can be seen simply as
+\begin{equation}
+\mathbb{E} | X_T - Y_N | \leq K h^\gamma
+\qquad
+\text{and}
+\qquad
+| \mathbb{E}[f(X_T)] - \mathbb{E}[f(Y_N)] | \leq M_f h^\beta,
+\end{equation}
+where
+$h = \Delta t_n$
+for all
+$n=0,...,N$.
+
+%\subsubsection{Theoretical results}
+Once we have schemes as above to approximate numerically the solution of an SDE it is necessary to prove that said schemes will provide an appropriate output, meaning that one must know if those schemes converge
+(in either of the two senses that have been discussed earlier)
+to the real solution, as the discretisation is refined. Additionally it is also desirable to know which is the order of convergence.
+For that objective,
+\cite{glasserman_monte_2004}
+and
+\cite{kloeden_numerical_1999}
+state the conditions on the coefficients and the proofs are found in the latter.
+
+\begin{theorem}[Strong convergence for E-M scheme {{\cite[Theorem 10.2.2]{kloeden_numerical_1999}}}]
+Let the conditions from
+\cref{th:lipz_lin}
+hold for the coefficients
+$b$
+and
+$\sigma$,
+additionally assume that
+%\begin{equation}
+%\mathbb{E}(\| X_0 - \tilde{X}_0 \|^2) \leq K \sqrt{\Delta t}
+%\end{equation}
+%and
+\begin{equation}
+| b(s_0, x) - b(t_0, x) | +
+| \sigma(s_0, x) - \sigma(t_0, x) | \leq
+K (1 + |x|) \sqrt{| t_0 - s_0 |}.
+\label{eq:ext_lin_g}
+\end{equation}
+Then the Euler-Maruyama scheme has a strong order of convergence $\gamma = 1/2$.
+\label{th:em_strong_conv}
+\end{theorem}
+
+In the following, the condition on
+\eqref{eq:ext_lin_g}
+will be called
+\textit{extended linear growth}.
+
+\begin{theorem}[Strong convergence for Milstein scheme {{\cite[Theorem 10.3.5]{kloeden_numerical_1999}}}]
+Let the conditions from
+\cref{th:lipz_lin}
+and
+\cref{th:em_strong_conv}
+hold for the coefficients
+$b$
+and
+$\sigma$.
+Recall that the operators
+$L^0$
+and
+$L^1$
+have been defined in
+\eqref{eq:l0}
+and
+\eqref{eq:l1},
+and let us consider the following notation
+\begin{equation}
+z(t,x) = b(t,x) - \frac{1}{2} (\sigma \sigma')(t,x)
+\end{equation}
+Suppose that the Lipschitz
+\begin{equation}
+%\begin{split}
+\left| z(t, x_0) - z(t, y_0) \right|
+%&\leq
+%K_1 | x_0 - y_0 |,
+%\\
++ \left| \sigma(t, x_0) - \sigma(t, y_0) \right|
+%&\leq
+%K_1 | x_0 - y_0 |,
+%\\
++ \left| L^1 \sigma(t, x_0) - L^1 \sigma(t, y_0) \right|
+\leq
+K_1 | x_0 - y_0 |,
+%\end{split}
+\end{equation}
+linear growth
+\begin{equation}
+%\begin{split}
+| z(t, x_0) | + | L^1 z(t,x_0) |
+%&\leq
+%K_2 (1 + |x|),
+%\\
++| \sigma(t, x_0) | + | L^1 \sigma(t,x_0) |
+%&\leq
+%K_2 (1 + |x|),
+%\\
++ | L^1 L^1 \sigma(t,x_0) |
+\leq
+K_2 (1 + |x|),
+%\end{split}
+\end{equation}
+and extended linear growth conditions
+\begin{equation}
+\begin{split}
+\left| z(s_0, x) - z(t_0, x) \right|
+%&\leq
+%K_3 (1 - |x|) |s_0 - t_0|^{1/2},
+%\\
++ \left| \sigma(s_0, x) - \sigma(t_0, x) \right|
+%&\leq
+%K_3 (1 - |x|) |s_0 - t_0|^{1/2},
+%\\
+\left| L^1 \sigma(s_0, x) - L^1 \sigma(t_0, x) \right|
+\leq
+K_3 (1 - |x|) |s_0 - t_0|^{1/2},
+\end{split}
+\end{equation}
+hold for all
+$x, y, x_0, y_0 \in \mathbb{R}$,
+$t, s_0, t_0 \in [0,T]$,
+and constants
+$K_1, K_2, K_3 > 0$.
+Then the Milstein scheme has a strong rate of convergence $\gamma = 1$.
+\label{th:ms_strong_conv}
+\end{theorem}
+
+In general one can have a more robust strong convergence criterion statement that accounts for the strong approximations of all orders.
+\begin{theorem}
+[Strong convergence of all orders {{\cite[Theorem 10.6.3]{kloeden_numerical_1999}}}]
+Let
+$N \in \mathbb{N}$, and
+$Y = (Y_n)_{n=0}^{N}$
+be an approximation to the solution of the SDE
+\eqref{eq:int_sde}
+with order
+$\gamma$ of strong convergence
+for some
+$\gamma = 0.5, 1.0, 1.5, 2.0,...$,
+corresponding to an equidistant time discretisation
+$(t_n)_{n=0}^{N}$
+with
+$\Delta t_n = h$.
+Suppose that the coefficient functions
+$f_\alpha$
+satisfy Lipschitz continuity
+\begin{equation}
+| f_\alpha(t, x) - f_\alpha(t, y) | \leq K_1 | x - y |,
+\end{equation}
+and linear growth
+\begin{equation}
+| f_\alpha(t, x) | \leq K_2 (1 + | x |),
+\end{equation}
+hold for all
+$t \in [0,T]$
+and
+$x, y \in \mathbb{R}$.
+Then
+\begin{equation}
+\mathbb{E} | X_{T} - Y_N |^2 \leq K_3 (1 + |X_0|^2) h^{2\gamma} + K_4 | X_0 - Y_0|^2,
+\end{equation}
+holds for
+$K_1, K_2, K_3, K_4 < \infty$ constants independent of the time grid.
+\label{th:strong_conv}
+\end{theorem}
+
+\begin{theorem}[Weak convergence for all orders {{\cite[Theorem 14.5.1]{kloeden_numerical_1999}}}]
+Let
+$N \in \mathbb{N}$, and
+$Y = (Y_n)_{n=0}^{N}$
+be a approximation to the solution of the SDE
+\eqref{eq:int_sde}
+with order
+$\beta$
+of weak convergence for some
+$\beta = 1, 2, 3,...$
+corresponding to the time discretisation
+$(t_n)_{n=0}^{N}$
+with
+$\Delta t_n = h$.
+Suppose that the coefficients of the equation
+are
+$b, \sigma \in C^{2(\beta + 1)}(\mathbb{R})$
+and Lipschitz continuous, and that
+$f_\alpha$
+for
+$f(t,x) := x$
+satisfy
+\begin{equation}
+| f_\alpha(t, x) | \leq K (1 + | x |),
+\end{equation}
+holds for
+$K<\infty$.
+Then for each
+$g\in C^{2(\beta + 1)}(\mathbb{R})$
+there exists a constant
+$C_g$,
+which does not depend on the time discretisation, such that
+\begin{equation}
+| \mathbb{E}[ g(X_T)] - \mathbb{E}[g(Y_N) ] | \leq C_g h^\beta.
+\end{equation}
+\label{th:weak_conv}
+\end{theorem}
+
+Note that for strong convergence we present results for Euler scheme and Milstein scheme separately, plus the general statement for all orders, but for weak convergence only the general statement is mentioned.
+We do this because for weak convergence, Euler and Milstein schemes are both of convergence order 1 and in order to achieve weak convergence of a greater order, it is necessary to include more terms than those the Milstein scheme has.
+
+Just as seen above, from the Euler scheme the following weak convergence order is 2.0.
+Said scheme includes two more terms than the Milstein scheme, but one less than the 1.5 strong scheme, so one should be aware that not all strong schemes will have a counterpart in the weak convergence side.
+Although for sure, even if the 1.5 scheme is not necessarily of interest in terms of weak convergence, just by having more terms from the Taylor expansion, it has to have at least order 1.0 of weak convergence, in fact it must have at least order 2.0 since it contains more elements from the Taylor approximation than the 2.0 weak scheme. 
+
+Once the numerical approximations are found, there are different methods to confirm convergence of numerical methods, in particular we decided to use Monte Carlo methods to compute the error of approximation, i.e: we produce a large number or simulations and then computing a deterministic operation over them.
+We denote by
+$X_t^m$
+and
+$Y_t^m$
+the $m$-th sample path of the solution and the numerical approximation respectively.
+
+\begin{itemize}
+\item For strong convergence to be confirmed numerically is necessary to compare a considerable number of paths from both the exact solution of the equation and the approximation with the strong scheme that has been used, and using the law of large numbers to approximate the mean. Then if $M$ sample paths of each are computed and $m \in \{1,...,M\}$ then the approximation of the strong error will be then given by
+\begin{equation}
+E | X_T - Y_N | \approx \frac{1}{M} \sum_{m=1}^{M} | X_T^m - Y_N^m |,
+\end{equation}
+which by the law of large numbers converges to $E |X_T - Y_N|$ as $m \to \infty$.
+
+\item Similarly, weak convergence is numerically verified using the following approximation for the weak error
+\begin{equation}
+| E[f(X_T)] - E[f(Y_N)] | \approx \left| E[f(X_T)] - \frac{1}{M} \sum_{m=1}^{M} f(Y_N^m) \right|,
+\end{equation}
+where we already know
+$E[f(X_T)]$,
+therefore it is only necessary to compute the
+$M$
+sample paths from the numerical approximation and not from the real solution.
+\end{itemize}
+
+Finally let us recall the random variables
+$\Delta W_{n}$
+and
+$\Delta U_{n}$
+represented as in
+\cref{eq:delta_w_num,eq:delta_u_num}.
+Those representations work when we need to implement a scheme once with a certain amount of time steps, but for the approximation of the error, we need to run the numerical schemes using the same random variables
+$Z$
+and
+$\tilde{Z}$,
+for either more or less time steps in the scheme.
+In practice in order to compute said random variables for different time grids, let us say that the finest of such grids is
+$\{ t_0, t_1, t_2,...., t_{2^M} \}$
+which has
+$2^M + 1$
+time steps, and those time steps are equidistant, so we can denote
+$\sqrt{\Delta t_n} = h$,
+then we will generate arrays
+$Z^N = (z_1,...,z_{2^N})$
+and
+$\tilde{Z}^N = (\tilde{z}_1,...,\tilde{z}_{2^N})$.
+Each difference
+$\Delta W_n$
+is computed as
+\begin{equation}
+\Delta W_n = W_{t_{n+1}} - W_{t_{n}} = h z_{n+1},
+\end{equation}
+then each
+$W_{t_{n+1}}$
+can be written recursively as
+\begin{equation}
+W_{t_{n+1}} = W_{t_{n}} + h z_{n+1},
+\end{equation}
+since
+$W_{t_0} = W_0 = 0$.
+%Now let us take the grid
+%$\{ t_0, t_2, t_4,...., t_{2^M} \}$
+%that has only
+%$2^{M-1} + 1$
+%and we can compute the difference at time
+%$t_n$,
+%$\overline{\Delta W_n}$,
+%for the new grid as
+%\begin{align*}
+%\overline{\Delta W_n}
+%&= W_{t_{n+2}} - W_{t_{n}}
+%\\
+%&= (W_{t_{n+1}} + hz_{n+2}) - W_{t_{n}}
+%\\
+%&= (W_{t_{n}} + hz_{n+1}) + hz_{n+2} - W_{t_{n}}
+%\\
+%&= h(z_{n+1} + z_{n+2})
+%\end{align*}
+
+Now let us take the grid
+$\{ t_0, t_{1 \times 2^k}, t_{2 \times 2^k},...., t_{2^{M-k} \times 2^k} \}$
+with
+$2^{M-k} + 1$
+points, for this we can compute the difference at time
+$t_{m \times 2^k}$,
+denoted
+$\overline{\Delta W_{m \times 2^k}}$,
+as
+\begin{align*}
+\overline{\Delta W_{m \times 2^k}}
+&= W_{t_{(m+1)\times 2^k}} - W_{t_{m \times 2^k}}
+\\
+&= h(z_{(m+1)\times 2^k} + ... + z_{m \times 2^k + 1}),
+\end{align*}
+for any
+$m=1,...,2^{M-k}$.
+
+%\begin{theorem}[Weak convergence for Milstein scheme]
+%The Milstein scheme has a weak rate of convergence $\beta = 1$.
+%\end{theorem}
+
+\subsection{A numerical example: Geometric Brownian Motion}
+To verify the accuracy of the numerical schemes mentioned earlier, an SDE with a known explicit solution is used.
+In \cite[117-126]{kloeden_numerical_1999} a comprehensive list of such equations is given, and we will use the following particular case of a \textit{geometric Brownian motion} (GBM)
+\begin{equation}
+\begin{cases}
+dX_t = \frac{1}{2} X_t dt + X_t dW_t,
+\\
+X_0 = x_0
+\end{cases}
+\end{equation}
+whose solution is
+\begin{equation}
+X_t = x_0 \exp{W_t}.
+\end{equation}
+Its mean is given by
+\begin{equation}
+\mathbb{E}[X_t] = x_0 \exp\left(\frac{1}{2} t\right).
+\end{equation}
+
+%\begin{figure}
+%\centering
+%\begin{subfigure}{0.45\textwidth}
+%\includegraphics[width=\textwidth]{gbm_em_ms_01.png}
+%\end{subfigure}
+%\begin{subfigure}{0.45\textwidth}
+%\includegraphics[width=\textwidth]{gbm_em_ms_02.png}
+%\end{subfigure}
+%\begin{subfigure}{0.45\textwidth}
+%\includegraphics[width=\textwidth]{gbm_em_ms_03.png}
+%\end{subfigure}
+%\begin{subfigure}{0.45\textwidth}
+%\includegraphics[width=\textwidth]{gbm_em_ms_04.png}
+%\end{subfigure}
+%\caption{}
+%\end{figure}
+
+For this SDE with the notation from
+\cref{def:em_scheme}
+and
+\cref{def:m_scheme},
+the Euler-Maruyama, Milstein, 1.5 strong and 2.0 weak approximations at time $t_n$ are, respectively:
+
+\begin{align}
+&\begin{aligned}
+Y_{n+1} &= Y_n + \frac{1}{2} Y_n \Delta t_n + Y_n \sqrt{\Delta t} Z_{n+1}
+\end{aligned}
+\\
+&\begin{aligned}
+\hat{Y}_{n+1} &= \hat{Y}_n
++ \frac{1}{2} \hat{Y}_n \Delta t_n
++ \hat{Y}_n \sqrt{\Delta t_n} Z_{n+1}
++ \frac{1}{2} \Delta t_n (Z_{n+1}^2 - 1)
+\end{aligned}
+\\
+&\begin{aligned}
+\tilde{Y}_{n+1}
+&=
+\tilde{Y}_n
++ \frac{1}{2} \tilde{Y}_n \Delta t_n
++ \tilde{Y}_n \sqrt{\Delta t_n} Z_{n+1}
++ \frac{1}{2} \Delta t_n (Z_{n+1}^2 - 1)
+\\
+&\quad+
+\frac{1}{4} \tilde{Y}_n \left( Z_{n+1} + \frac{1}{\sqrt{3}} \tilde{Z}_{n+1} \right) (\Delta t_n)^{\nicefrac{3}{2}}
+\quad+ \frac{1}{8} \tilde{Y}_n (\Delta t_n)^{2}
+\\
+&\quad+
+\frac{1}{2} \tilde{Y}_n \left( \frac{1}{2} Z_n + \frac{1}{2\sqrt{3}} \tilde{Z}_{n+1} \right) (\Delta t_n)^{\nicefrac{3}{2}}
++ \frac{1}{2} \left( \frac{1}{3} Z_{n+1}^2 - 1 \right) Z_{n+1} (\Delta t_n)^{\nicefrac{3}{2}}
+\end{aligned}
+\\
+&\begin{aligned}
+\breve{Y}_{n+1}
+&=
+\breve{Y}_n
++ \frac{1}{2} \breve{Y}_n \Delta t_n
++ \breve{Y}_n \sqrt{\Delta t_n} Z_{n+1}
++ \frac{1}{2} \Delta t_n (Z_{n+1}^2 - 1)
+\\
+&\quad+
+\frac{1}{4} \breve{Y}_n \left( Z_{n+1} + \frac{1}{\sqrt{3}} \tilde{Z}_{n+1} \right) (\Delta t_n)^{\nicefrac{3}{2}}
++ \frac{1}{8} \breve{Y}_n (\Delta t_n)^{2}
+\\
+&\quad+
+\frac{1}{2} \breve{Y}_n \left( \frac{1}{2} Z_n + \frac{1}{2\sqrt{3}} \tilde{Z}_{n+1} \right) (\Delta t_n)^{\nicefrac{3}{2}}
+\end{aligned}
+\end{align}
+
+We ran batches of approximations for the gBm and its approximations with the numerical schemes mentioned above, each with step sizes
+$\Delta t \in \{ 2^{-3},..., 2^{-7} \}$,
+$10^{5}$ sample paths on each batch.
+In
+\cref{fig:gbm_error}
+we can see how increasing the amount of points in the approximation to the solution reduces the error.
+Also one might notice that strong weak error behave in different ways, this is because strong error is computed comparing paths of the real solution with paths of the approximation, making the error smaller in each step, thus, probably we do not need as many sample paths to get a well behaved error.
+Meanwhile for weak error we compare approximations of the solution against a fixed quantity
+$\mathbb{E}[f(X_t)]$,
+in this case when we are using Monte Carlo methods to compute the error the amount of paths that we compare is important, and the more we use the better behaved will be the error.
+
+\begin{figure}[!ht]
+\centering
+\begin{subfigure}{0.45\textwidth}
+\includegraphics[width=\textwidth]{error_strong_es.png}
+\end{subfigure}
+\begin{subfigure}{0.45\textwidth}
+\includegraphics[width=\textwidth]{error_weak_es.png}
+\end{subfigure}
+\begin{subfigure}{0.45\textwidth}
+\includegraphics[width=\textwidth]{error_strong_ms.png}
+\end{subfigure}
+\begin{subfigure}{0.45\textwidth}
+\includegraphics[width=\textwidth]{error_weak_ms.png}
+\end{subfigure}
+\begin{subfigure}{0.45\textwidth}
+\includegraphics[width=\textwidth]{error_strong_15s.png}
+\end{subfigure}
+\begin{subfigure}{0.45\textwidth}
+\includegraphics[width=\textwidth]{error_weak_20s.png}
+\end{subfigure}
+\caption{Log-log graphs of the error of approximation. Left column from top to bottom: Strong error for Euler scheme, strong error for Milstein scheme and strong error for 1.5 strong scheme. Right column from top to bottom: Weak error for Euler scheme, weak error for Milstein scheme and weak error for 2.0 weak scheme. The blue line with markers represents the real values of the errors, the orange dashed line is the theoretical slope that the error for each scheme should have in each context and the red dotted line is the real slope of the error computed via linear regression.}
+\label{fig:gbm_error}
+\end{figure}
+
+%\begin{table}
+%\centering
+%\begin{tabular}{ccccc}
+%\toprule
+%& Batch 1 & Batch 2 & Batch 3 & Batch 4
+%\\
+%\midrule
+%&\multicolumn{4}{c}{Euler-Maruyama scheme}
+%\\
+%Strong convergence &
+%\\
+%Weak convergence\\
+%\midrule
+%&\multicolumn{4}{c}{Milstein scheme}
+%\\
+%Strong convergence &
+%\\
+%Weak convergence\\
+%\bottomrule
+%\end{tabular}
+%\end{table}
+
+\section{Sobolev spaces and rough coefficients}
+The approximation methods for SDEs mentioned above can lead us to good results if the coefficients behave as stated in
+\cref{th:em_strong_conv,th:ms_strong_conv,th:strong_conv,th:weak_conv}.
+However we are interested in some particular kind of drift coefficients that do not satisfy the necessary conditions for the schemes defined above, hence we need to find a way to approximate those coefficients so that we can use them numerically.
+
+\subsection{Fractional Sobolev spaces}
+Here we will define the spaces to which the drift of the equations we want to study lives.
+Let us introduce some definitions and notation.
+\begin{definition}[Fourier transform]
+Let
+$f:\mathbb{R} \to \mathbb{C}$
+be in
+$L^1(\mathbb{R})$.
+Then the Fourier transform of
+$f$
+is defined as
+\begin{equation}
+\hat{f}(\xi) = \mathcal{F}[f](\xi) := \frac{1}{\sqrt{2\pi}} \int_\mathbb{R} e^{-i \xi x} f(x) dx.
+\end{equation}
+\end{definition}
+%{\color{gray}
+%\begin{definition}[Inverse Fourier transform]
+%Let
+%$f:\mathbb{R} \to \mathbb{R}$
+%be in
+%$L^1(\mathbb{R})$.
+%Then the inverse Fourier transform of
+%$\hat{f}$
+%is defined as
+%\begin{equation}
+%f(\xi) = \mathcal{F}^{-1}[\hat{f}](\xi) := \frac{1}{\sqrt{2\pi}} \int_\mathbb{R} e^{i \xi x} \hat{f}(x) dx.
+%\end{equation}
+%\end{definition}
+%}
+\begin{definition}[Weak derivative]
+Suppose
+$u,v \in L^1(\mathbb{R})$,
+and
+$\alpha \in \mathbb{N}$,
+we say that
+$u^{(\alpha)} = v$
+is the
+$\alpha$-th weak derivative of
+$u$,
+provided
+\begin{equation}
+\int_{\mathbb{R}} u \phi^{(\alpha)} dx = (-1)^\alpha \int_{\mathbb{R}} v\phi dx
+\end{equation}
+for all test functions
+$\phi \in C^{\infty}_{c}(\mathbb{R})$.
+\end{definition}
+\begin{definition}[Schwartz functions]
+We denote the space of Schwartz functions as
+\begin{equation}
+\mathcal{S}(\mathbb{R}) = \{ f \in C^\infty: \sup_{x \in \mathbb{R}} | x^\alpha f^{(\beta)}(x) | < \infty, \forall \alpha, \beta \in \mathbb{N} \},
+\end{equation}
+where
+$f^{(\beta)} = \frac{d^\beta f}{dx^\beta}$.
+\end{definition}
+As the definition points out, Schwartz functions are those whose derivatives are rapidly decreasing.
+This means that any derivative decays faster than any power of
+$x$,
+and thus the product of those is bounded.
+
+\begin{definition}[Tempered distributions]
+A tempered distribution on
+$\mathbb{R}$
+is a linear mapping
+$\phi \to (f,\phi)$
+from
+$\mathcal{S}(\mathbb{R})$
+to
+$\mathbb{C}$.
+Therefore the set of all tempered distributions is the dual of the space of Schwartz functions, and is denoted by
+$\mathcal{S}'(\mathbb{R})$.
+\end{definition}
+
+\begin{definition}
+\cite[Remark 1.2]{triebel_bases_2010}
+Let
+$f \in \mathcal{S}'(\mathbb{R})$
+for
+$0 < p < \infty$
+and let
+%$\hat{f}$
+%represents the Fourier transform of
+%$f$,
+%$\check{F}$
+%is the inverse Fourier transform of
+%$F$
+%and
+$\xi, s \in \mathbb{R}$.
+We define the map
+$I^s:\mathcal{S}'(\mathbb{R}) \to \mathcal{S}'(\mathbb{R})$
+as
+\begin{equation}
+I^{s}: f \mapsto \mathcal{F}^{-1}\left[ \left( 1 + |\xi|^{2} \right)^{\frac{s}{2}} \mathcal{F}[f] \right].
+\label{eq:operator_isigma}
+\end{equation}
+Said map is a bijection in
+$\mathcal{S}'(\mathbb{R})$.
+\end{definition}
+
+The definition of fractional Sobolev spaces can be found in different formats by different authors, we have chosen the one in
+\cite[Remark 1.2]{triebel_bases_2010}.
+\begin{definition}[Fractional Sobolev spaces]
+Let
+$s \in \mathbb{R}$,
+$0 < p < \infty$,
+and
+$I^{s}$
+as in
+\eqref{eq:operator_isigma}
+we call the space
+\begin{equation}
+H^{s}_{p} := I^{-s} L^{p} (\mathbb{R})
+\end{equation}
+a fractional Sobolev space.
+Further, this is a Banach space if it is equipped with the norm
+\begin{equation}
+\| f \|_{H^{s}_{p}} := \| I^{-s} f \|_{L^{p}(\mathbb{R})}.
+\end{equation}
+\label{def:sobolev_frac}
+\end{definition}
+
+We must add that in the case that
+$s = k \in \mathbb{N}$
+we have the special case of classical Sobolev spaces, denoted usually by
+$W^{k,p}(\mathbb{R})$
+\cite[Section 2.3.8]{triebel_theory_2010}.
+Also notice that if
+$s < 0$, the space
+$H^s_p(\mathbb{R})$
+will contain distributions and if
+$s=0$,
+$H^s_p(\mathbb{R}) = L^p(\mathbb{R})$.
+%{\color{red} Should I remove the definition of classical Sobolev spaces and just mention as above that those are special cases? The thing is that if I stick with the general definition there is no need to talk about negative order spaces as duals for the classical ones, besides I won't use the integer versions again in the text. Of course the small discussion about why to use Sobolev spaces of integer order below would be removed.}
+%
+%\begin{definition}[Sobolev spaces]
+%Let
+%$1 < p < \infty$
+%and
+%$k \in \mathbb{N}$.
+%Then the space
+%$W^{k,p}(\mathbb{R})$
+%is the collection of all
+%$f \in L^p(\mathbb{R})$
+%such that
+%\begin{equation}
+%\| f \|_{W^{k,p}} := \left( \sum_{\alpha = 0}^{k} \| f^{(\alpha)} \|^{p}_{L^{p}} \right)^{\frac{1}{p}} < \infty,
+%\end{equation}
+%where
+%$f^{(\alpha)}$
+%denotes the weak derivative of order
+%$\alpha \in \mathbb{N}$.
+%\label{def:sobolev_integer}
+%\end{definition}
+%For details in the equivalence of
+%\cref{def:sobolev_frac,def:sobolev_integer}
+%one can see
+%\cite[Section 2.3.8]{triebel_theory_2010}.
+%
+%The reason
+%\cref{def:sobolev_frac}
+%and
+%\cref{def:sobolev_integer}
+%are equivalent is that under the Fourier transform, the derivative is a multiplier operator, that is
+%\begin{equation}
+%\mathcal{F}\left[\frac{d^k}{dx^k}f(x)\right](\xi) = (i\xi)^k [\mathcal{F}f](\xi).
+%\end{equation}
+%So, for an example, let us set
+%$p = 2$
+%and
+%$k = 1$.
+%For
+%a function
+%$f:\mathbb{R} \to \mathbb{R}$
+%to belong to the Sobolev space
+%$W^{1,2}$
+%as in
+%\cref{def:sobolev_integer}
+%we need that
+%$f, \frac{df}{dx} \in L^2$.
+%And in terms of the Fourier transform we need that
+%$\mathcal{F}f, i\xi\mathcal{F}f \in L^2$.
+%Those last two conditions can be combined as
+%\begin{equation}
+%(1 + |\xi|)\mathcal{F}f \in L^2.
+%\end{equation}
+%But we can note at least two problems in that condition:
+%first,
+%$(1 + |\xi|)$
+%is not smooth, and second, it does not account for the \textit{``derivatives of order
+%$s < k$''}.
+%But the the term
+%$(1 + |\xi|^2)^{\nicefrac{1}{2}}$
+%solves both issues.
+%So for a general
+%$k = s \in \mathbb{R}$,
+%\cref{def:sobolev_frac}
+%is better since the Fourier transform is well defined in Sobolev spaces.
+%}
+%
+%Sobolev spaces provide us with an appropriate framework to find solutions to Partial Differential Equations (PDEs), relaxing the conditions of differentiability.
+%One simple example of this feature can be seen in the equation
+%
+%\begin{equation}
+%\begin{cases}
+%-u''(x) + u(x) = f(x) & \text{ on } [a,b],\\
+%u(a) = u(b) = 0. &
+%\end{cases}
+%\label{eq:pde_sob}
+%\end{equation}
+%In the classical sense a solution to this equation is a function in
+%$C^{2}([a,b])$
+%that satisfies the equation.
+%However, if we take a function
+%$\phi \in C^1([a,b])$
+%to multiply
+%\cref{eq:pde_sob},
+%and then integrate by parts we obtain
+%\begin{equation}
+%\int_a^b u' \phi' dx + \int_a^b u \phi dx = \int_a^b f \phi dx,
+%\label{eq:pde_int_weak}
+%\end{equation}
+%we can now see that the solution
+%$u$
+%to the equation only needs to belong to
+%$C^1([a,b])$,
+%and its derivative
+%$u'$
+%has to be one time weak differentiable as the previous equation indicates.
+%Further to solve equation
+%\eqref{eq:pde_int_weak},
+%it is sufficient if
+%$u, u' \in L^1(a,b)$,
+%because in Sobolev spaces we are concerned with functions only in
+%$L^p$
+%spaces, therefore we have that the solution to equation
+%\eqref{eq:pde_sob}
+%belongs to the space
+%$W^{2,1}(a,b)$.
+%{\color{red} include motivation to use fractional and negative sobolev spaces}
+
+\subsection{Bases in Sobolev spaces}
+We are interested in the study of a coefficient
+$b$
+which belongs to an appropriate fractional Sobolev space of negative order, acting as the drift for an SDE such as
+\eqref{eq:int_sde}.
+We want to know how to compute the distributional coefficient numerically for the simulations, however as the coefficient is a distribution, its pointwise evaluation does not make sense and we need some way to approximate it numerically.
+One way to achieve this is to find bases for those spaces, that are comprised of measurable functions.
+
+Let us denote the interval
+$I=(0,1)$,
+we can define as in
+\cite{de_angelis_numerical_2020}
+\begin{equation}
+H^s_p(I) := \{ f \in (C^\infty_c)' : f = h|_I \text{ for some } h \in H^s_p(\mathbb{R}) \},
+\end{equation}
+with the norm
+\begin{equation}
+\| f \|_{H^s_p(I)} = \inf \{ \|h\|_{H^s_p}(\mathbb{R}): h \in H^s_p(\mathbb{R}) \text{ with } f = h|_I \}.
+\end{equation}
+%Once we define the approximation of the distributional coefficient on the interval
+%$I$
+%we need a way to compute the coefficient at any point of an interval
+%$[-K,K]$, more on this will be discussed on the implementation section.{\color{red} mention exactly the part of the text}
+
+\begin{definition}[Haar wavelets on $I=(0,1)$]
+The Haar wavelet system on
+$I = (0,1)$
+is given by
+\begin{equation}
+\{ h_0, h_{j,m}: j \in \mathbb{N}, m = 0,...,2^j - 1 \}
+\end{equation}
+where
+\begin{equation}
+h_{0}(x) := \mathbbm{1}_{I}(x)
+\end{equation}
+and
+\begin{equation}
+h_{j,m}(x) = \mathbbm{1}_{\left[\frac{m}{2^j}, \frac{m + 1/2}{2^j}\right)} - \mathbbm{1}_{\left[\frac{m + 1/2}{2^j}, \frac{m + 1}{2^j}\right)}.
+\end{equation}
+\label{def:haar_sys}
+\end{definition}
+Haar systems are bases for the fractional Sobolev spaces to which the drift coefficient lives and are particularly useful for numerical schemes because they are piecewise constants and therefore its values can be stored in computer without any loss of information.
+The following theorem tells us how to represent elements in said space as infinite sums of Haar functions.
+\begin{theorem}
+[{{\cite[Theorem 2.13]{triebel_bases_2010}}}]
+Let
+$0 \leq p < \infty$,
+$-\frac{1}{2} < s < \frac{1}{p}$,
+and let
+$f \in (C^\infty_c)'(I)$.
+Then
+$f \in H^{s}_{p}(I)$
+if and only if
+\begin{equation}
+f = \sum_{j=0}^{\infty} \sum_{m=0}^{2^j-1} \mu_{j,m} 2^{-j\left( s - \frac{1}{r} \right)} h_{j,m},
+\end{equation}
+with unconditional convergence in any space
+$H^{\sigma}_{p}(I)$
+with
+$\sigma < s$.
+The representation is unique with the coefficients given by
+\begin{equation}
+\mu_0 := \int_0^1 f(x) h_0(x) dx
+\end{equation}
+and for
+$j\in\mathbb{N}$
+and
+$m=0,...,2^j-1$
+by
+\begin{equation}
+\mu_{j,m} := 2^{j\left( s - \frac{1}{p} + 1 \right)} \int_{0}^1 f(x) h_{j,m}(x) dx,
+\end{equation}
+where the integral above is in the sense of dual pairing.
+Moreover the system
+\begin{equation}
+\left\{ h_0, 2^{-j(s - \frac{1}{p})} h_{j,m}: j \in \mathbb{N}, m = 0,..., 2^{j} - 1 \right\}
+\end{equation}
+is an unconditional normalised basis of
+$H^{s}_{p}$(I).
+\label{th:haar_rep}
+\end{theorem}
+
+There is one more difficulty with that theorem, and is that the coefficients
+$\mu_{j,m}$
+are defined in the form of an integral in the sense of dual pairing,
+%{\color{red} just define the coefficient in terms of dual pairing and explain why is not possible to compute}
+which even though it is a well defined mathematical object, it is not possible to make a proper numerical computation of it.
+To overcome this problem let us introduce Faber systems, which are basis for the spaces
+$H^s_p(I)$,
+for
+$2 \geq r < \infty$
+and
+$\nicefrac{1}{2} < s< 1 + \nicefrac{1}{p}$.
+It is important to note that Faber series representation will only hold on bounded intervals, which for numerical schemes is perfectly acceptable.
+\begin{definition}[Faber wavelets in $I=(0, 1)$]
+The Faber system in
+$I$
+is given by
+\begin{equation}
+\{ v_{0}, v_{1}, v_{j,m} : j \in \mathbb{N}, m = 0,...,2^{j} - 1 \}
+\end{equation}
+where
+\begin{equation}
+v_0(x) :=
+\begin{cases}
+1 - x & 0 \leq x \leq 1
+\\
+0 & \text{otherwise}
+\end{cases}
+\qquad and \qquad
+v_1(x) :=
+\begin{cases}
+x & 0 \leq x \leq 1
+\\
+0 & \text{otherwise},
+\end{cases}
+\end{equation}
+and the hat functions are defined by
+\begin{equation}
+v_{j,m} := 2^{j+1} \int_{0}^{x} h_{j,m} (y) dy =
+\begin{cases}
+2^{j+1} (x - 2^{-j} m)
+&
+x \in \left[ \frac{m}{2^{j}}, \frac{m + \nicefrac{1}{2}}{2^{j}} \right)
+\\
+2^{j+1} (2^{-j}(m - 1) - x)
+&
+x \in \left[ \frac{m}{2^{j}}, \frac{m + \nicefrac{1}{2}}{2^{j}} \right)
+\\
+0
+&
+otherwise.
+\end{cases}
+\end{equation}
+\label{def:faber_sys}
+\end{definition}
+The following theorem establishes the series representation of elements in the appropriate space with the Faber system.
+\begin{theorem}
+[{{\cite[Theorem 3.1]{triebel_bases_2010}}}]
+Let
+$g \in H^{s}_{r}(I)$
+for
+$2 \leq r < \infty$
+and
+$\nicefrac{1}{2} < s < 1 + \nicefrac{1}{r}$.
+Then we have the unique Faber representation for
+$g$
+\begin{equation}
+g = \hat{\mu}_0 v_0 + \hat{\mu}_1 v_1
++ \sum_{j=0}^{+\infty} \sum_{m=0}^{2^{j} - 1} \hat{\mu}_{j,m} v_{j,m}
+\end{equation}
+with unconditional convergence in
+$C(I)$
+and in
+$H^{\sigma}_{r}(I)$
+with
+$\sigma < s$.
+Where the coefficients
+$\hat{\mu}$
+are given by
+\begin{equation}
+\begin{cases}
+\hat{\mu}_{j,m} &= -\frac{1}{2} (\Delta^{2}_{2^{-j-1}} g)(2^{-j} m)
+\\
+\hat{\mu}_0 &= g(0)
+\\
+\hat{\mu}_1 &= g(1),
+\end{cases}
+\end{equation}
+and where
+$(\Delta^{2}_{h} g) (x) := g(x + 2h) - 2g(x + h) + g(x)$.
+\label{th:faber_exp}
+\end{theorem}
+
+Notice how in
+\cref{def:faber_sys}
+the Faber functions are defined as the normalised integrals of Haar functions,
+and also from
+\cref{th:faber_exp}
+we have that the Faber functions are basis in a space
+$H^s_p(I)$
+for
+$\nicefrac{1}{2} < s < 1 + \nicefrac{1}{p}$
+and
+$2 \leq p < \infty$
+meanwhile Haar functions are basis for spaces
+$H^s_p(I)$
+for
+$-\nicefrac{1}{2} < s < \nicefrac{1}{p}$
+and
+$0 \leq p < \infty$.
+It is true that
+\begin{equation}
+f \in H^{s+1}_p \implies f' \in H^{s}_p,
+\end{equation}
+whenever the derivative exists.
+We also have that
+\begin{equation}
+v'_{j,m} = 2^{j+1}h_{j,m},
+\end{equation}
+whereby, we can think that having
+$f$
+expanded in Faber series we can be formally differentiate term by term to get the Haar representation of
+$f'$.
+
+\begin{theorem}[{{\cite[Theorem 3.1]{triebel_bases_2010}}}]
+Let
+$g' \in H^{s}_{r}(I)$,
+then
+$g' \in H^{s-1}_{r}(I)$
+with
+$2 \leq r < \infty$,
+$\nicefrac{1}{2} < s < 1 + \nicefrac{1}{r}$
+which can be written as
+\begin{equation}
+g' = (\hat{\mu}_1 - \hat{\mu}_0)h_0 + \sum_{j=0}^{+\infty} \sum_{m=0}^{2^{j} - 1} 2^{j+1} \hat{\mu}_{j,m} h_{j,m},
+\end{equation}
+where
+\begin{equation}
+\mu_{0} = \hat{\mu}_1 - \hat{\mu}_0 \qquad and \qquad \mu_{j,m} = 2^{j+1} \hat{\mu}_{j,m}.
+\end{equation}
+\label{th:link_haar_faber}
+\end{theorem}
+
+\section{Numerical schemes for SDEs with distributional drift}
+\subsection{Theoretical results}
+The foundations of this research project are in
+\cite{de_angelis_numerical_2020},
+in which it is devised an algorithm to work with drifts that belong to an appropriate fractional Sobolev space.
+Below the main results of the paper are mentioned, and for this the following notation and assumptions are in order.
+
+Let us have the SDE
+\begin{equation}
+\begin{cases}
+dX_t = b(t,X_t) dt + dW_t,
+\\
+X_0 = x_0
+,\quad
+t \in [0,T],
+\end{cases}
+\label{eq:dist_sde_diff}
+\end{equation}
+where
+$b \in H^{-s}_p(\mathbb{R})$.
+
+\begin{definition}
+Let
+$B$
+be a Banach space, then let us denote by
+$C([0,T];B)$
+the spaces of $B$-valued functions of time, this is a Banach space with the norm
+\begin{equation}
+\| f \|_{\infty, B} = \sup_{0 \geq t \geq T} \| f(t) \|_B.
+\end{equation}
+Let
+$\kappa \in (0,1)$,
+the space
+$C^\kappa ([0,T]; B)$
+will denote the set of functions in
+$C([0,T];B)$
+that are $\kappa$-Hölder continuous in time i.e:
+\begin{equation}
+[f]_{\kappa,B} := \sup_{s \neq t \in [0,T]} \frac{\| f(t) - f(s) \|_B}{| t - s |^\kappa} < \infty.
+\end{equation}
+This is a Banach space when endowed with the norm
+\begin{equation}
+\|f\|_{\kappa,B} = \| f \|_{\infty,B} + [f]_{\kappa,B}.
+\end{equation}
+\end{definition}
+%Those spaces are also called Besov spaces
+%\cite[p. 415]{leoni_first_2017}.
+In our case, we will select
+$B = H^s_p$,
+therefore a map
+$g(t,\cdot) \in C^\alpha ([0,T]; B)$
+it is potentially a distribution depending in the sign of
+$s$.
+Let us denote
+$H^s_{p,q} = H^s_{p} \cap H^s_{q}$.
+Also note that if
+$f \in H^s_{p,q}(\mathbb{R})$
+for
+$p \wedge q < r < p \vee q$,
+it will also be true that
+$f \in H^s_r(\mathbb{R})$.
+Now consider the equation
+\eqref{eq:int_sde},
+the aim is to first make an approximation of the coefficient $b$ with a better behaved coefficient $b^N$, for this purpose let the following assumptions for $b$ and $b^N$ hold:
+\begin{assumption}[{{\cite{de_angelis_numerical_2020}}}]
+Let
+$\beta_0 \in \left(0, \frac{1}{4}\right)$
+and
+$q_0 \in \left(4, \frac{1}{\beta_0}\right)$,
+fix
+$\tilde{q}_0 := (1 - \beta_0)^{-1}$.
+Then for some
+$\kappa \in \left( \frac{1}{2}, 1 \right)$
+we assume that
+$b \in C^{\kappa} \left([0, T]; \, H_{\tilde{q}_0, q_0}^{-\beta_0} \right)$.
+\label{as:01}
+\end{assumption}
+%{\color{red} we can mention how the dual of a sobolev space is defined, which gives an insight to the selection of $\tilde{q}_0$}
+
+\begin{assumption}[{{\cite{de_angelis_numerical_2020}}}]
+Let
+$(b^N)_{N \geq 1} \subset C^{\frac{1}{2}} \left([0, T]; \, H^{0}_{\tilde{q}_0, q_0} \right)$
+be such that
+\begin{equation}
+\lim_{N \to \infty} b^N = b
+\qquad in \qquad
+C^{\frac{1}{2}} \left([0, T]; \, H^{-\beta_0}_{\tilde{q}_0, q_0} \right).
+\end{equation}
+\label{as:02}
+\end{assumption}
+
+%For the definition of the sequence
+%$(b^{N})$
+%we use Haar wavelets, which as mentioned above are unconditional bases for the Sobolev spaces that are considered, therefore it is possible to express the coefficient
+%$b$
+%as a linear combination of Haar wavelets.
+The assumptions above allow us to select the elements of the sequence
+$b^N$
+living in a space of coefficients that is not as rough as the space in which the real coefficient lives, but will still belong to the fractional negative Sobolev space because of the inclusion property
+$H^s_p \in H^r_p$
+if
+$s>r$.
+Because of that inclusion property, the convergence of
+$\lim_{N \to \infty}b^N$
+makes sense with the norm defined for
+$C^{\frac{1}{2}} ([0, T]; \, H^{-\beta_0}_{\tilde{q}_0, q_0} )$.
+\begin{definition}[Heat kernel and heat semigroup]
+The heat kernel is a function
+$\phi(t, x): [0,T] \times \mathbb{R} \to \mathbb{R} $
+defined as
+\begin{equation}
+\phi(t, x) := \frac{1}{\sqrt{2 \pi t}} \exp\left(-\frac{x^2}{2t} \right).
+\end{equation}
+Let
+%$f \in H^{-\beta_0}_{\tilde{q}_0,q_0}(\mathbb{R}) \subset \mathcal{S}'(\mathbb{R})$
+$f \in \mathcal{S}'(\mathbb{R})$
+then we define the heat semigroup
+$P_t f$
+via convolution of the heat kernel with
+$f$,
+\begin{equation}
+[P_t f] (x) = \int_{-\infty}^\infty \phi(t, x-y) f(y) dy.
+\end{equation}
+\label{def:heat}
+\end{definition}
+%{\color{red} should I say that the heat kernel is the fundamental solution to the heat equation (i.e: write heat equation) and using convolution with an initial condition gives the general solution to introduce the heat semigroup?}
+The heat kernel as introduced here is the fundamental solution of the heat equation
+\begin{equation}
+\begin{cases}
+\frac{\partial u}{\partial t}(t,x) - \frac{\partial^2 u}{\partial x^2}(t,x) = 0 & (t,x) \in [0,T] \times \mathbb{R}
+\\
+u(0,x) = g(x),
+\end{cases}
+\end{equation}
+and the general solution would be
+$u(t, x) = [P_t g](x)$.
+Note that the heat kernel is the probability distribution function of a random variable distributed as
+$\mathcal{N}(0, t)$.
+
+Let us now remind some properties of the heat semigroup, mentioned in \cite[Remark 3.2]{de_angelis_numerical_2020}:
+\begin{align}
+\| P_t f \|_{\infty, H^{-s}_{q}}
+&\leq
+\| f \|_{\infty, H^{-s}_{q}}
+\label{eq:heat_kernel_props_bound}
+\\
+\| P_t f - f \|_{\infty, H^{-s-\epsilon}_{q}}
+&\leq
+c t^{\nicefrac{\epsilon}{2}} \| f \|_{\infty, H^{-s}_{q}},
+\label{eq:heat_kernel_props_conv}
+\end{align}
+%\begin{equation}
+%P_{\eta_{N}} \mathbbm{1}_{[x_1, x_2)} = \exp(-\eta_{N})\left( \Phi \left( \frac{x_{2} - x}{\sqrt{\eta_{N}}} \right) - \Phi \left( \frac{x_{1} - x}{\sqrt{\eta_{N}}} \right) \right)
+%\label{eq:semig_gen}
+%\end{equation}
+The distributional coefficient
+$b$
+is going to be approximated by a coefficient
+$b^N$
+defined as the sum of Haar functions.
+When the heat kernel is applied to Haar functions it has the form
+\begin{equation}
+\begin{split}
+[P_{\eta_{N}} h_{j,m}](x)
+&=
+\left[P_{\eta_{N}} \mathbbm{1}_{\left[\frac{m}{2^j}, \frac{m + 1/2}{2^j}\right)}\right](x)
+- \left[P_{\eta_{N}} \mathbbm{1}_{\left[\frac{m + 1/2}{2^j}, \frac{m + 1}{2^j}\right)}\right](x)
+\\
+&=
+\exp(-\eta_{N})
+\left(
+- \Phi \left( \frac{x - \frac{m + 1}{2^{j}}}{\sqrt{\eta_{N}}} \right)
++ 2 \Phi \left( \frac{x - \frac{m + 1/2}{2^{j}}}{\sqrt{\eta_{N}}} \right)
+- \Phi \left( \frac{x - \frac{m}{2^{j}}}{\sqrt{\eta_{N}}} \right)
+\right),
+\end{split}
+\end{equation}
+where
+$j = 1, 2,...,N$,
+$m = 1, 2,...,2^j$,
+$N$ is fixed,
+$\eta_N$
+is a constant that depends on
+$N$,
+and
+$\Phi$
+is the cumulative distribution function of a standard normal random variable.
+
+Let us note that the heat kernel applied to the approximation
+$b_\eta^N$
+will be denoted by
+\begin{equation}
+b_\eta^N := P_{\eta_N} b^N.
+\end{equation}
+\begin{theorem}[{{\cite[Proposition 3.1]{de_angelis_numerical_2020}}}]
+Let
+\cref{as:01}
+and
+\ref{as:02} hold.
+Take any
+$(\beta, q)$
+such that
+$\beta \in (\beta_0, \frac{1}{2})$
+and
+$q_0 \geq q > \tilde{q} \geq \tilde{q}_0$,
+where
+$\tilde{q} := (1 - \beta)^{-1}$.
+Then for any
+$\frac{1}{2} < \gamma < \gamma_0$
+there is a constant $C_\gamma > 0$
+such that
+\begin{equation}
+\sup_{0 \leq t \leq T} \mathbb{E} | X_t^N - X_t |
+\leq C_\gamma \| b_\eta^N - b \|_{\infty, H_{q}^{-\beta}}^{2\gamma - 1}.
+\label{eq:approx_to_soln}
+\end{equation}
+\label{th:approx_to_soln}
+\end{theorem}
+
+The previous theorem shows the rate of convergence of the approximation
+$X^N$
+to the solution
+$X$
+by finding a bound for the error, said bound is related to the rate of convergence of the approximation for the distributional drift itself.
+
+Since the convergence of the approximation to the solution is dependant on the convergence of the approximation to the distributional drift, it is necessary to see that the approximation of the drift also has a sensible bound. Using properties
+\cref{eq:heat_kernel_props_bound,eq:heat_kernel_props_conv} and setting
+$\beta = \beta_0 + \epsilon$
+we can get a bound for the right hand term in
+\cref{eq:approx_to_soln}:
+
+\begin{align*}
+\| b^N_\eta - b \|_{\infty, H^{-\beta}_{q}}
+&=
+\| b^N_\eta - P_{\eta}b + P_{\eta}b - b \|_{\infty, H^{-\beta}_{q}}
+\\
+&\leq
+\| P_{\eta}(b^N - b) \|_{\infty, H^{-\beta}_{q}} - \| P_{\eta}b - b \|_{\infty, H^{-\beta}_{q}}
+\\
+&\leq
+\| b^N - b \|_{\infty, H^{-\beta}_{q}}
++
+c \eta^{\frac{\beta - \beta_0}{2}} \| b \|_{\infty, H^{-\beta_0}_{q_0}}.
+\end{align*}
+Then as
+$\eta \to \infty$,
+as
+$\beta > \beta_0$
+the second term in the inequality goes to zero and then it is necessary to find a bound for the first term, as is made in the following theorem.
+
+%Furthermore thanks to the inclusion property we will have
+%$\| b^N - b \|_{\infty, H^{-\beta}_{q}}
+%\leq
+%c\| b^N - b \|_{\infty, H^{-\beta_0}_{q_0}}
+%\to 0$
+%as
+%$N \to \infty$
+
+\begin{theorem}[{{\cite[Proposition 3.3]{de_angelis_numerical_2020}}}]
+Let
+\cref{as:01}
+hold and let the sequence
+$(b^N)_{N \geq 1}$
+be defined as
+\begin{equation}
+b^N(t) := \sum_{j = -1}^{N} \sum_{m = -2^j}^{2^j} \mu_{j, m} (t) 2^{-j(-\beta - \frac{1}{q})} h_{j, m},
+\label{eq:bn_coeff}
+\end{equation}
+which by construction
+$b^N(t) \in H_{\tilde{q}_0,q_0}^{0} \subset H_{\tilde{q}_0,q_0}^{-\beta_0}$.
+Then
+$(b^N)_{N \geq 1}$
+satisfies assumption
+\cref{as:02}
+and for any
+$ \beta \in (\beta_0, \frac{1}{2}) $
+it holds that
+\begin{equation}
+\| b^N - b \|_{\infty, H_{2}^{-\beta}} \leq c 2^{-(N+1)(\beta - \beta_0)} \| b \|_{\infty, H_{2}^{-\beta_0}}.
+\label{eq:elena_b}
+\end{equation}
+\label{th:elena_b}
+\end{theorem}
+
+We mentioned that since Haar functions
+$h_{j,m}$
+are the derivatives, up to a constant, of Faber functions
+$v_{j,m}$,
+it is natural to think that we can differentiate elements in a space
+$H^{s+1}_{p}(I)$
+and get elements in
+$H^{s}_p(I)$.
+Let us define
+\begin{equation}
+b(t, x) := \frac{\partial g}{\partial x} (t,x)
+\label{eq:b_def_der}
+\end{equation}
+for
+$g \in H^s_{p}(I)$.
+Now let us introduce a definition to get a particular function
+$g$.
+
+\begin{definition}[Fractional Brownian motion]
+A Fractional Brownian Motion (FBM) is a Gaussian process
+$\{ \hat{B}^{H}(x), x \in \mathbb{R} \}$
+with covariance given by
+\begin{equation}
+\mathbb{E} [\hat{B}^{H}(x) \hat{B}^{H}(y)] = \frac{1}{2} (x^{2H} + y^{2H} + | x - y |^{2H}).
+\end{equation}
+\end{definition}
+
+%For the computation of the coefficients
+%$\mu_{j,m}$
+%of equation
+%\cref{eq:elena_b}
+%we use the relation between the coefficients of Haar and Faber expansions in the discussion of
+%\cref{th:faber_exp}
+%in particular with the function
+%$g$
+%being a path of fractional Brownian motion (fBm), which is defined as follows.
+%{\color{red} check Elena's comment again}
+Let us denote
+$B^H := \psi \hat{B}^H$,
+for some
+$\psi \in C^\infty_c$
+supported in the interval
+$I$,
+it can be proven that
+$\hat{B}^H \in H^{-\beta_0+1}_{q_0}(\mathbb{R})$,
+$\mathbb{P}$-a.s.
+\cite[Proposition 4.1]{issoglio_transport_2013}.
+Nonetheless, Faber functions are only basis of Sobolev spaces
+$H^{\beta_0+1}_{q_0}(I)$
+where
+$I$
+is a bounded interval,
+but as
+$supp (B^H(\omega)) \subset I$,
+then
+$B^H(\omega) \in H^{-\beta_0+1}_{q_0}(I)$,
+$\mathbb{P}$-a.s.
+
+FBM is particularly useful because is easy to simulate numerically, we can see a procedure for it in
+\cite[Appendix B]{de_angelis_numerical_2020}.
+We define
+$g$
+in
+\cref{eq:b_def_der}
+to be a single path of the FBM
+$B^H$,
+and thanks to
+\cref{th:link_haar_faber}
+we can compute the coefficients for the series expansion of
+$b$
+as
+\begin{equation}
+\begin{cases}
+\mu_0 &= B^H(1) - B^H(0)
+\\
+\mu_{j,m} &= -2^j \left( B^H \left( \frac{m+1}{2^j} \right) -2B^H \left( \frac{m + \nicefrac{1}{2}}{2^j} \right) + B^H \left( \frac{m}{2^j} \right) \right).
+\end{cases}
+\end{equation}
+
+In order to abide by the definition of Haar and Faber wavelets in the interval
+$I=(0,1)$,
+the coefficients
+$\mu_0$
+and
+$\mu_{j,m}$
+for the series expansion will be computed using a FBM defined over the same interval.
+However, the coefficient
+$b(t,x)$
+has to be applied to a stochastic process
+$X$,
+therefore if we restrict the coefficient to
+$x \in [0,1]$
+we will not be able to compute it over a large portion of the domain of
+$X$,
+thus we need to rescale the coefficient to apply it over a large interval.
+
+For the sake of the numerical implementations, since we cannot compute anything over the whole real line, let us say that we need to compute it over an interval
+$[-K,K]$
+for a large
+$K$,
+which essentially will be the same interval as
+$[0,2K]$
+after a switch which can be performed thanks to the self-similarity property of FBM.
+So let us define FBMs
+$\tilde{B}^H$
+and
+$B^H$
+over the interval
+$[0,2K]$
+and
+$[0,1]$
+respectively, then we have
+\begin{equation}
+\tilde{B}^H(x) = (2K)^H B^H\left(\frac{x}{2K}\right),
+\label{eq:fbm_kk}
+\end{equation}
+and then
+\begin{align*}
+\frac{\partial}{\partial x}\tilde{B}^H(x)
+&= (2K)^H \frac{\partial}{\partial x} B^H\left(\frac{x}{2K}\right)\frac{1}{2K}
+\\
+&= (2K)^{H-1} \frac{\partial}{\partial x} B^H\left(\frac{x}{2K}\right).
+\end{align*}
+We then need to apply the heat kernel to the derivative above in order to obtain our approximation to the real distributional coefficient, which is given by
+\begin{equation*}
+P_\eta\left[\frac{\partial}{\partial x}\tilde{B}^H\right](x)
+= \frac{1}{\sqrt{2 \pi \eta}} \int_\mathbb{R} \exp\left(-\frac{(\xi - x)^2}{2 \eta}\right) \frac{\partial}{\partial x}\tilde{B}^H(\xi) d\xi.
+\end{equation*}
+Using the change of variables
+$y = \nicefrac{\xi}{2K}$,
+$dy = \nicefrac{d\xi}{2K}$
+we can change
+$\tilde{B}^H$
+by
+$B^H$
+according to 
+\eqref{eq:fbm_kk} and have
+\begin{align*}
+P_\eta\left[\frac{\partial}{\partial x}\tilde{B}^H\right](x)
+&= \frac{1}{\sqrt{2 \pi \eta}} \int_\mathbb{R} \exp\left(-\frac{(2K)^2(y - \nicefrac{x}{2K})^2}{2 \eta}\right) (2K)^{H-1}\frac{\partial}{\partial x}B^H(y) (2K)dy
+\\
+&= \frac{1}{\sqrt{2 \pi \nicefrac{\eta}{(2K)^2}}} \int_\mathbb{R} \exp\left(-\frac{(y - \nicefrac{x}{2K})^2}{2 \nicefrac{\eta}{(2K)^2}}\right) (2K)^{H-1}\frac{\partial}{\partial x}B^H(y) (2K)dy
+\\
+&=
+(2K)^{H-1} P_{\frac{\eta}{(2K)^2}}\left[ \frac{\partial}{\partial x} B^H \right]\left( \frac{x}{2K} \right).
+\end{align*}
+From there, we can compute the approximation of the coefficient on
+$[0, 2K]$,
+but then for a FBM
+$\breve{B}^H$
+over
+$[-K, K]$
+we compute
+\begin{equation}
+P_\eta\left[\frac{\partial}{\partial x} \breve{B}^H\right](x) = (2K)^{H-1} P_{\frac{\eta}{(2K)^2}} \left[\frac{\partial}{\partial x} B^H\right]\left(\frac{x+K}{2K}\right).
+\end{equation}
+Hence in the numerical schemes we end up using this form above given that we compute the coefficients
+$\mu_0$
+and
+$\mu_{j,m}$
+with a FBM over
+$I=(0,1)$.
+
+The core of the present problem is the approximation of the distributional coefficient in a way that is manageable numerically.
+Note that it is first found an approximation to the coefficient
+$b$,
+which we call
+$b^N_\eta$
+and with that coefficient we have a new SDE with a time homogeneous drift
+\begin{equation}
+\begin{cases}
+dX^N_t
+= b^N_\eta(X^N_t) dt
++ dW_t,
+\quad
+t \in [0, T]
+\\
+X^N_0 = x_0.
+\end{cases}
+\label{eq:approx_sde}
+\end{equation}
+We can find a numerical solution
+$X^{N,m}_{t}$
+using an Euler scheme with
+$m$
+time steps,
+for the system above and the following theorem tells us that the numerical solution
+$X^{N,m}_{t}$
+converges to the solution
+$X^{N}_{t}$.
+
+\begin{theorem}[{{\cite[Proposition 3.4]{de_angelis_numerical_2020}}}]
+Let
+\cref{as:01}
+hold and let
+$ b^N \in C^{\frac{1}{2}} \left( [0, T]; H_{\tilde{q}_0, q_0}^{0} \right) $
+for fixed
+$ N $.
+Then as
+$ m \to \infty $
+\begin{equation}
+\sup_{ 0 \leq t \leq T }
+\mathbb{E} \left| X_{t}^{N, m} - X_{t}^{N} \right| \leq
+C_{2}(N) m^{-1} + C_{3}(N) m^{-\frac{1}{2}}
+\end{equation}
+where
+\begin{equation}
+C_{2} := c \| b^{N}_\eta \|_{\infty, L^{\infty}} \left( 1 + \| \nabla b^N_\eta \|_{\infty, L^{\infty}} \right),
+\end{equation}
+\begin{equation}
+C_{3} := c' \left( \| \nabla b^N_\eta \|_{\infty, L^{\infty}} + \left[ b^N_\eta \right]_{\frac{1}{2}, L^{\infty}} \right),
+\end{equation}
+and
+$c, c' > 0$
+are constants independent of
+$(N,m)$.
+\label{th:numerical_to_approx}
+\end{theorem}
+
+The following result essentially is a combination of
+\cref{th:approx_to_soln}
+and
+\ref{th:numerical_to_approx}.
+\begin{theorem}
+Let
+\cref{as:01}
+and also
+$ b^N $
+defined as in
+\eqref{eq:bn_coeff}
+so that
+\cref{as:02}
+holds too, and let
+$ \Theta_{*} := \frac{1}{2} \left[ \frac{3}{4} - \beta_0 \left( \gamma_0 - \frac{1}{2} \right) \right]^{-1} $.
+Then as
+$ m \to \infty $,
+let
+$ \eta_{N} = m^{-\Theta_{*}} $
+and
+$ N = 2 \Theta_{*} \log_{2} m $
+it holds that
+\begin{equation}
+\sup_{0 \leq t \leq T} \mathbb{E} \left| X_{t}^{N,m} - X_t \right| \leq
+c_{\epsilon} \left( m^{-\Theta_{*} \left( \frac{1}{2} - \beta_0 \right) \left( \gamma_0 - \frac{1}{2} \right) - \epsilon} \right)
+\end{equation}
+where
+$ \epsilon > 0 $
+is arbitrarily small and
+$ c_\epsilon > 0  $
+is a constant depending on
+$ \epsilon $.
+\end{theorem}
+
+If we recall the definition of strong convergence established before, we can see that the authors in
+\cite{de_angelis_numerical_2020}
+actually proved a stronger statement, because the result is strong convergence not only for the terminal time
+$T$,
+but for all times
+$t\in[0,T]$.
+
+%At the moment the same algorithm in the article by De Angelis et al.
+%\cite{de_angelis_numerical_2020}
+%has been implemented with satisfactory results, confirming the rate of convergence established in said article.
+%\Cref{fig:bn_error}
+%shows the error for the approximation
+%{\color{red}\textbf{...elaborate in the estimation of error as in the article...}}
+%\begin{figure}[!ht]
+%\centering
+%\begin{subfigure}{0.45\textwidth}
+%\includegraphics[width=\textwidth]{error_strong_es_distributional.png}
+%\end{subfigure}
+%\caption{Log-log graphs of the estimation error of the Euler-Maruyama scheme with
+%$N=9$,
+%$m \in \{ {2}^{4},...,{2}^{8} \}$.}
+%\label{fig:bn_error}
+%\end{figure}
+
+\subsection{Numerical implementations}
+In
+\cite{de_angelis_numerical_2020}
+it is proven that the Euler scheme modified to work with the approximation of the distributional coefficient has a certain order of convergence, which is not the same as in an Euler scheme, this is because in the Euler scheme (or any other scheme that we discussed earlier), the only parameter that changes is size of the time grid that we use,  meanwhile here we have that for size of the time grid, the parameter
+$\eta$
+of the semigroup will vary, so there are two parameters changing, assuming that
+$N$
+for the series representation of the coefficient is fixed.
+
+We have explored, only numerically, the possibilities to improve the Euler scheme by adding terms from the Taylor expansion, and also looked at weak convergence of the schemes mentioned.
+It is clear that Milstein scheme is not useful for an equation such as
+\eqref{eq:dist_sde_diff},
+since we require of the derivative of the diffusion coefficient, but as said coefficient is equals one the derivative vanishes.
+That is why in
+\cref{def:15_scheme,def:w2_scheme}
+we introduced a numerical schemes of higher order that are useful for this particular problem.
+And actually the 1.5 strong and 2.0 weak schemes for this problem coincide because, as we said, we have
+$\sigma=1$
+and its derivatives will make several terms vanish.
+The scheme will look as follows:
+\begin{equation}
+\begin{split}
+\tilde{Y}_{n+1}
+&=
+\tilde{Y}_n + b(t_n, \tilde{Y}_n) \Delta t_n + Z_{n+1} \sqrt{\Delta t_n}
+\\
+&+
+\frac{1}{2} (b')(t_n, \tilde{Y}_{t_n}) \left( Z_{n+1} + \frac{1}{\sqrt{3}} \tilde{Z}_{n+1} \right) (\Delta t_n)^{\nicefrac{3}{2}}
+\\
+&+ \frac{1}{2} \left( (bb')(t_n, \tilde{Y}_{t_n}) + \frac{1}{2} (b'')(t_n, \tilde{Y}_{t_n}) \right) \left(\Delta t_n \right)^2,
+%\\
+%&+
+%\frac{1}{4} \left( Z_{n+1} - \frac{1}{\sqrt{3}} \tilde{Z}_{n+1} \right) (\Delta t_n)^{\nicefrac{3}{2}}
+%\\
+\end{split}
+\end{equation}
+and it is just a matter of considering one or the other schemes when we approximate the error in order to compare with a known problem.
+
+Of course in numerical implementations we cannot use the distributional coefficient, as we discussed earlier and we have the approximation of the drift as
+\begin{equation}
+b^N_\eta(x) = \mu_0 P_\eta h_0(x) + \sum^{N}_{j=0} \sum^{2^j-1}_{m=1} \mu_{j,m} P_\eta h_{j,m}(x).
+\end{equation}
+The equation above with the heat semigroup applied to the Haar functions reads
+\begin{equation}
+\begin{split}
+b^N_\eta(x) %&= \mu_0 P_{\eta_N} h_0(x) + \sum^{N}_{j=0} \sum^{2^j-1}_{m=1} \mu_{j,m} P_{\eta_N} h_{j,m}(x)
+%\\
+&= \mu_0 \frac{1}{\sqrt{2 \pi \eta_N}} \int_{-\infty}^{\infty} h_0(y) e^{-\frac{(x-y)^2}{2 \eta_N}} dy
+\\
+&\phantom{=} + \sum^{N}_{j=0} \sum^{2^j-1}_{m=1} \mu_{j,m} \frac{1}{\sqrt{2 \pi \eta_N}} \int_{-\infty}^{\infty} h_{j,m}(y) e^{-\frac{(x-y)^2}{2 \eta_N}} dy
+\\
+&= \mu_0 \frac{1}{\sqrt{2 \pi \eta_N}} \int_{0}^{1} e^{-\frac{(x-y)^2}{2 \eta_N}} dy 
+\\
+&\phantom{=} + \sum^{N}_{j=0} \sum^{2^j-1}_{m=1} \mu_{j,m} \frac{1}{\sqrt{2 \pi \eta_N}} \left( \int_{\frac{m}{2^j}}^{\frac{m + \nicefrac{1}{2}}{2^j}} e^{-\frac{(x-y)^2}{2 \eta_N}} dy - \int_{\frac{m + \nicefrac{1}{2}}{2^j}}^{\frac{m+1}{2^j}} e^{-\frac{(x-y)^2}{2 \eta_N}} dy \right).
+\end{split}
+\end{equation}
+The equation above is useful when we want to compute the derivatives of
+$P_{\eta_N} b^N$,
+because we can differentiate inside the integral sign, and then as
+$b^N_\eta$
+is a finite sum of Haar functions multiplied by some coefficients, we can rewrite
+$\frac{\partial}{\partial x} b^N_\eta (x)$
+and
+$\frac{\partial^2}{\partial x^2} b^N_\eta (x)$,
+as the sum of the building blocks of the sum, i.e. terms of the form
+$\frac{\partial}{\partial x} P_{\eta_N} \mathbbm{1}_{(a,b)} (x)$
+and
+$\frac{\partial^2}{\partial x^2} P_{\eta_N} \mathbbm{1}_{(a,b)} (x)$,
+where
+$a,b$
+are the points defining the corresponding Haar functions.
+\begin{equation}
+\begin{split}
+\frac{\partial}{\partial x}[P_{\eta_N} \mathbbm{1}_{(a,b)}](x) &= \frac{1}{\sqrt{2 \pi \eta_{N}}} \left( \exp\left( -\frac{(x - a)^2}{2\eta_{N}} \right) - \exp\left( -\frac{(x - b)^2}{2\eta_{N}} \right) \right),
+%\frac{\partial}{\partial x}(P_{\eta_N} b^N)(x)
+%%&= \mu_0 \frac{1}{\sqrt{2 \pi \eta_N}} \int_{0}^{1} \frac{\partial}{\partial x} e^{-\frac{(y-x)^2}{2 \eta_N}} dy 
+%%\\
+%%&+ \sum^{N}_{j=0} \sum^{2^j-1}_{m=1} \mu_{j,m} \frac{1}{\sqrt{2 \pi \eta_N}} \left( \int_{\frac{m}{2^j}}^{\frac{m + \nicefrac{1}{2}}{2^j}} \frac{\partial}{\partial x} e^{-\frac{(y-x)^2}{2 \eta_N}} dy - \int_{\frac{m + \nicefrac{1}{2}}{2^j}}^{\frac{m+1}{2^j}} \frac{\partial}{\partial x} e^{-\frac{(y-x)^2}{2 \eta_N}} dy \right)
+%%\\
+%&= \mu_0 \frac{1}{\eta_N\sqrt{2 \pi \eta_N}} \int_{0}^{1} (y-x) e^{-\frac{(y-x)^2}{2 \eta_N}} dy
+%\\
+%&+ \sum^{N}_{j=0} \sum^{2^j-1}_{m=1} \mu_{j,m} \frac{1}{\eta_N\sqrt{2 \pi \eta_N}} \left( \int_{\frac{m}{2^j}}^{\frac{m + \nicefrac{1}{2}}{2^j}} (y-x) e^{-\frac{(y-x)^2}{2 \eta_N}} dy \right.
+%\\
+%&\hspace{5cm}-
+%\left.
+%\int_{\frac{m + \nicefrac{1}{2}}{2^j}}^{\frac{m+1}{2^j}} (y-x) e^{-\frac{(y-x)^2}{2 \eta_N}} dy
+%\right)
+%\\
+%&= \mu_0 \frac{1}{\sqrt{2 \pi \eta_N}} \left( \exp\left(-\frac{(1-x)^2}{2 \eta_N}\right) - \exp\left(-\frac{x^2}{2 \eta_N}\right) \right)
+%\\
+%&+ \sum^{N}_{j=0} \sum^{2^j-1}_{m=1} \mu_{j,m} \frac{1}{\sqrt{2 \pi \eta_N}} \left( \exp\left(-\frac{\left(\frac{m}{2^j}-x\right)^2}{2 \eta_N}\right) 
+%\right.
+%\\
+%&\hspace{5cm}\left.- 2\exp\left(-\frac{\left(\frac{m+\nicefrac{1}{2}}{2^j}-x\right)^2}{2 \eta_N}\right)
+%\right.
+%\\
+%&\hspace{7.5cm}\left.+ \exp\left(-\frac{\left(\frac{m+1}{2^j}-x\right)^2}{2 \eta_N}\right) \right)
+\end{split}
+\end{equation}
+
+\begin{equation}
+\begin{split}
+\frac{\partial^2}{\partial x^2}[P_{\eta_N} \mathbbm{1}_{(a,b)}](x) 
+&=\frac{1}{\sqrt{2 \pi \eta_{N}}} \left((x - a) \exp\left( -\frac{(x - a)^2}{2\eta_N} \right) - (x - b) \exp\left( -\frac{(x - b)^2}{2\eta_N} \right) \right.
+\\
+&\phantom{=}\left.+ (e^{\eta_N} - 1)\left(\Phi\left( \frac{x - a}{\sqrt{\eta_N}} \right)  - \Phi\left( \frac{x - b}{\sqrt{\eta_N}} \right) \right) \right).
+%\frac{\partial^2}{\partial x^2}(P_{\eta_N} b^N)(x) &= \mu_0 \frac{1}{\sqrt{2 \pi \eta_N}} \int_{0}^{1} \frac{1}{\eta_N}\left( \frac{(y-x)^2}{\eta_N} - 1 \right) e^{-\frac{(y-x)^2}{2 \eta_N}} dy 
+%\\
+%&+ \sum^{N}_{j=0} \sum^{2^j-1}_{m=1} \mu_{j,m} \frac{1}{\sqrt{2 \pi \eta_N}} \left( \int_{\frac{m}{2^j}}^{\frac{m + \nicefrac{1}{2}}{2^j}} \frac{1}{\eta_N}\left( \frac{(y-x)^2}{\eta_N} - 1 \right) e^{-\frac{(y-x)^2}{2 \eta_N}} dy 
+%\right.
+%\\
+%&\hspace{2.5cm}\left.- \int_{\frac{m + \nicefrac{1}{2}}{2^j}}^{\frac{m+1}{2^j}} \frac{1}{\eta_N}\left( \frac{(y-x)^2}{\eta_N} - 1 \right) e^{-\frac{(y-x)^2}{2 \eta_N}} dy \right)
+%\\
+%&=
+%- \mu_0 \frac{1}{\sqrt{2 \pi \eta_N}} \left((1 - x) \exp\left(-\frac{(1-x)^2}{2\eta_N}\right) - x \exp\left(-\frac{x^2}{2\eta_N}\right)
+%\right.
+%\\
+%&\hspace{2.5cm}\left.+ \Phi_{\mathcal{N}(0,1)} \left( \frac{1-x}{\sqrt{\eta_N}}\right) - \Phi_{\mathcal{N}(0,1)} \left( \frac{-x}{\sqrt{\eta_N}} \right) \right)
+%\\
+%&+
+%\sum^{N}_{j=0} \sum^{2^j-1}_{m=1}
+%\mu_{j,m}
+%\frac{1}{\sqrt{2 \pi \eta_N}}
+%\left(
+%  \left(
+%\frac{m+1}{2^j} - x 
+%  \right)
+%\exp
+%  \left(
+%    - \frac{
+%    \left(
+%\frac{m+1}{2^j} - x
+%    \right)^2}{2 \eta_N}
+%  \right)
+%\right.
+%\\
+%&\hspace{2.5cm}\left.- \left(
+%\frac{m+\nicefrac{1}{2}}{2^j} - x 
+%  \right)
+%\exp
+%  \left(
+%    - \frac{
+%    \left(\frac{m+\nicefrac{1}{2}}{2^j} - x
+%    \right)^2}{2 \eta_N}
+%  \right)
+%\right.
+%\\
+%&\hspace{2.5cm}\left.+ \left(
+%\frac{m}{2^j} - x 
+%  \right)
+%\exp
+%  \left(
+%    - \frac{
+%    \left(
+%\frac{m}{2^j} - x
+%    \right)^2}{2 \eta_N}
+%  \right)
+% + (\exp(\eta_N) - 1)P_{\eta_N} h_{j,m}
+%\right)
+\end{split}
+\end{equation}
+
+The derivatives of the heat kernel applied to the indicator functions are then arranged in the form of the numerical schemes that we want to apply, and considering of course that we have to recover the coefficient
+$b^N_\eta$
+by means of multiplying by the appropriate coefficients
+$\mu_{j,m}$,
+and the Haar functions
+$h_{j,m}$.
+
+We must insist that the schemes that involve the derivative of
+$b^N_\eta$
+have not been studied theoretically, and therefore the link between those and the derivatives
+of a distributional coefficient
+$b$
+are not clear.
+
+First we implement the Euler scheme, and since this equation does not have a closed form solution, we decide in a finest grid to compute what we will use as the real solution with the Euler scheme.
+As an example we use the finest time grid
+$(t_m)_{m=0}^{M}$
+where
+$M = 2^9$
+and
+$t_0 = 0 < ... < 1 = t_M$.
+We generate a FBM with Hurst coefficient
+$H=0.85$,
+so that
+$\beta_0 = 0.15$,
+and according to
+\cref{as:01}
+we select
+$q_0 = \nicefrac{1}{\beta_0}$.
+Now, for
+$b^N_\eta$
+we have
+$N=9$
+and let us remind that in
+\cite{de_angelis_numerical_2020},
+after Assumption 1,
+$\gamma_0$
+is defined as
+\begin{equation}
+\gamma_0 = 1 - \beta_0 - \frac{1}{q_0},
+\end{equation}
+and our selection of
+$q_0$
+leaves us with
+$\gamma_0 = 1 - 2\beta_0$,
+also recall the definition of
+$\eta = M^{- \nicefrac{1}{2}(\nicefrac{3}{4} - \beta_0(\gamma_0 - \nicefrac{1}{2}))^{-1}}$.
+For the approximations we use grids
+$(t_{m'})_{m'=0}^{M'}$
+where
+$t_0 = 0 < ... < 1 = t_{M'}$,
+for
+$M' = 2^2,...,2^6$,
+and we compute again the Euler scheme with a different value of
+$\eta$ for the approximation of the coefficient.
+For both the proxy of the real solution and the coarser approximations we compute 100 paths and compute strong and weak error, and we can see both of them in
+\cref{fig:dist_es_error}.
+
+\begin{figure}[!ht]
+\centering
+\begin{subfigure}{0.45\textwidth}
+\includegraphics[width=\textwidth]{i1.png}
+\caption{Strong error with slope -0.53.}
+\label{fig:dist_es_error_strong}
+\end{subfigure}
+\begin{subfigure}{0.45\textwidth}
+\includegraphics[width=\textwidth]{i2.png}
+\caption{Weak error with slope -0.81}
+\label{fig:dist_es_error_weak}
+\end{subfigure}
+\caption{Log-log graphs of the error of approximation with
+$N=9$,
+and time steps
+$M' = 2^2, ..., 2^6$
+for
+$b \in H^{-0.15}_{6.66}$
+for the Euler scheme.}
+\label{fig:dist_es_error}
+\end{figure}
+
+In
+\cref{fig:dist_es_error}
+we can observe how the error does not behave as in a regular Euler scheme.
+Also, although changing the regularity of the coefficient, i.e: changing the Hurst coefficient of FBM, should change the rate of convergence, it does not show a noticeable difference, which agrees with the results in
+\cite[Table 1]{de_angelis_numerical_2020}.
+In contrast with said table we are getting slightly better results for the empirical rate of convergence, having a slope in the neighbourhood of -0.45 in most of the runs.
+
+%Additionally, we compared the standard deviation of the differences at terminal time between the sample paths of the real solution and the approximations at different refinements of the time grid, and we obtain a similar behaviour between that and the error, as we can see in
+%\cref{fig:dist_es_std}.
+%Observing this measure is helpful in the sense that we could have a smaller average in the differences, which is what we compute in
+%\cref{fig:dist_es_error_strong},
+%but have more variation in those differences.
+%In our case, we see that the standard deviation also decreases with the increase in step sizes.
+%
+%\begin{figure}[!ht]
+%\centering
+%\includegraphics[width=0.45\textwidth]{report_dist_std_es_29_22_26.png}
+%\caption{Log-log graphs standard deviation of approximations for the Euler Scheme.}
+%\label{fig:dist_es_std}
+%\end{figure}
+
+On the other hand, when we implement the 1.5 strong scheme we do not have encouraging results, in particular the slopes we get are negative, and sometimes even closer to the Euler scheme, we would expect an improvement with respect to the Euler scheme.
+As we can see in
+\cref{fig:dist_15s_error_strong},
+the error not too large, of the order of
+$2^{-2}$
+to
+$2^{-3}$.
+The weak error in contrast, which we should compare with the 2.0 weak scheme, behaves better in the sense that is usually of the order of
+$2^{-0.5}$
+to
+$2^{-2}$,
+but is still far from what we would expect since in the Euler scheme, for some choices of parameters we have order of convergence close to the regular case.
+
+\begin{figure}[!ht]
+\centering
+\begin{subfigure}{0.45\textwidth}
+\includegraphics[width=\textwidth]{i3.png}
+\caption{Strong error with slope -0.01.}
+\label{fig:dist_15s_error_strong}
+\end{subfigure}
+\begin{subfigure}{0.45\textwidth}
+\includegraphics[width=\textwidth]{i4.png}
+\caption{Weak error with slope -0.30}
+\label{fig:dist_15s_error_weak}
+\end{subfigure}
+\caption{Log-log graphs of the error of approximation with
+$N=9$,
+and time steps
+$M' = 2^2, ..., 2^6$
+for
+$b \in H^{-0.15}_{6.66}$
+for the 1.5 strong and 2.0 weak schemes.}
+\label{fig:dist_15s_error}
+\end{figure}
+
+%With the standard deviation of the differences, we have a similar behaviour as in the strong error, a reasonable slope, but a large deviation between the observations as we can see in
+%\cref{fig:dist_15s_std}.
+%
+%\begin{figure}[!ht]
+%\centering
+%\includegraphics[width=0.45\textwidth]{report_dist_std_15s_29_22_26.png}
+%\caption{Log-log graphs standard deviation of approximations for the Euler scheme.}
+%\label{fig:dist_15s_std}
+%\end{figure}
+
+Although the convergence of the 1.5 strong and 2.0 weak schemes, or any other scheme adding more terms from the Taylor expansion, has not been studied theoretically, one could expect the error to behave in a better way since the Euler scheme is being applied to a function
+$b^N_\eta$
+that has properties that we desire in order to use numerical approximations of this kind.
+This is an important limitation of the lack of theoretical study in the subject, although we would expect some particular behaviour we can not be certain that it is the behaviour that we are actually supposed to have for a given choice of parameters for the approximation.
+
+Most of efforts on the numerical schemes for SDEs are made around the Euler scheme, and this partly is because we only need the drift and diffusion coefficients properties to be known, and not those of their derivatives, which adds a further level of complexity.
+
+In this case, even if the 1.5 strong and 2.0 schemes (or any other) behave in a more desirable way, we do not really know the relationships between the derivatives of
+$b^N_\eta$
+and the ones of
+$b$,
+which if it proves relevance for the project could be studied in the future.
+%\subsubsection{Numerical implementations}
+
+\section{BSDEs and FBSDEs}
+In what follows let
+$\mathbb{F} := (\mathcal{F}_t)_{t \geq 0}$
+be a filtration,
+$(\Omega, \mathcal{F}, \mathbb{F}, \mathbb{P})$
+a complete filtered probability space, and consider the notation
+$\mathcal{L}^p(\mathbb{R})$
+to represent the set
+\begin{equation}
+\mathcal{L}^p(\mathbb{R}) = \{ \xi : \mathbb{F}\text{-adapted and } \mathbb{E}[|\xi|^p] < \infty\}.
+\end{equation}
+%{\color{red} let me know if this notation for the set is not good}
+
+\begin{definition}[Backward SDE]
+Let
+%$\{ \mathcal{F}_t \}_{t=0}^{T}$
+%be the filtration generated by the Wiener process
+%$W$,
+$f:[0,T] \times \mathbb{R}^{2} \to \mathbb{R}$ be measurable in all variables,
+$f(t, y, z)$
+uniformly Lipschitz continuous in
+$(y,z)$,
+%and denote
+%$f^{0}_t = f(t,0,0) \in L^{2}(\mathbb{R})$,
+%finally let
+and let
+$\xi \in \mathcal{L}^{2}(\mathbb{R})$
+be
+$\mathcal{F}_T$-measurable.
+Then the following is called a Backward SDE (BSDE):
+\begin{equation}
+Y_t = \xi + \int_{t}^{T}f(s, Y_s, Z_s) ds - \int_{t}^{T} Z_s dW_s,
+\label{eq:bsde}
+\end{equation}
+for
+$0 \leq t \leq T$,
+$\mathbb{P}$-a.s.
+where
+$Y, Z \in \mathcal{L}^{2}(\mathbb{R})$.
+$f$
+and
+$\xi$
+are called, respectively, the driver and
+the terminal condition of the BSDE.
+\label{def:bsde}
+\end{definition}
+
+A particular case of a BSDE when the driver
+$f = 0$
+is the well known martingale representation theorem, in which we see that under certain conditions we can write a given square integrable martingale as a stochastic integral.
+
+\begin{theorem}[Martingale representation theorem {{\cite[Theorem 2.5.2]{zhang_backward_2017}}}]
+For any
+$\xi \in \mathcal{L}^2(\mathbb{R})$,
+there exists a unique
+$\sigma \in \mathcal{L}^{2}(\mathbb{R})$
+such that
+\begin{equation}
+\xi = \mathbb{E}[\xi] + \int_0^T \sigma_t dW_t.
+\end{equation}
+Consequently if
+$M$
+is a martingale such that
+$\mathbb{E}[|M_{T}|^{2}] < \infty$,
+then there exists a unique
+$\sigma \in \mathcal{L}^{2}(\mathbb{R})$
+such that
+\begin{equation}
+M_t = M_0 + \int_{0}^{t} \sigma_{s} dW_s
+\end{equation}
+\label{th:mrt}
+\end{theorem}
+
+%Given
+%$\sigma_s \in \mathcal{L}^{2}(\mathbb{R})$
+%then we know that
+%\begin{equation}
+%M_t := \int_{0}^{t} \sigma_s dW_s
+%\label{eq:martingale_1}
+%\end{equation}
+%is a square integrable martingale. 
+%However, the converse statement is not always true, namely if we have a square integrable martingale
+%$M_t$,
+%we can not be certain to have a representation as in
+%\eqref{eq:martingale_1}.
+
+As an example let us consider
+$\xi \in \mathcal{L}^{2}(\mathbb{R})$,
+and
+$\mathbb{F} = (\mathcal{F}_t)_{t \geq 0}$
+be the filtration generated by the Wiener process
+$W$.
+It induces the martingale
+$Y_t := \mathbb{E}[\xi | \mathcal{F}_t]$,
+and by the martingale representation theorem, there exists a unique
+$Z \in \mathcal{L}^2(\mathbb{R})$
+such that
+\begin{equation}
+Y_t = \xi - \int_t^T Z_s dW_s.
+\label{eq:simple_bsde}
+\end{equation}
+%{\color{red} check this again}
+
+\begin{theorem}
+[{{\cite[Theorem 4.3.1]{zhang_backward_2017}}}]
+Under the assumptions of
+\cref{def:bsde},
+the BSDE
+\eqref{eq:bsde}
+has a unique solution
+$(Y,Z) \in \mathcal{L}^{2}(\mathbb{R}) \times \mathcal{L}^{2}(\mathbb{R})$.
+\end{theorem}
+
+One can go one step further and take the terminal condition
+$\xi$
+to be defined by an SDE, moreover we can choose the driver
+$f$
+to depend on the solution of the SDE.
+This generalisation is called Forward-Backward SDE (FBSDE).
+
+\begin{definition}[Forward-Backward SDE]
+Let
+$f:[0,T] \times \mathbb{R}^{3} \to \mathbb{R}$
+be measurable in all variables, uniformly Lipschitz continuous in
+$(x,y,z)$,
+and let
+$\xi \in \mathcal{L}^2(\mathbb{R})$
+be 
+the following system is called a Forward-Backward SDE:
+\begin{equation}
+\begin{dcases}
+X_t
+&=
+X_0 + \int_{0}^{t} b(s, X_s) ds + \int_{0}^{t} \sigma(s, X_s) dW_s,
+\\
+Y_t &= g(X_T) - \int_{t}^{T} f (s, X_s, Y_s, Z_s) ds - \int_{t}^{T} Z_s dW_s,
+\end{dcases}
+\label{eq:fbsde}
+\end{equation}
+for
+$0 \leq t \leq T$,
+$\mathbb{P}$-a.s.
+\label{def:fbsde}
+\end{definition}
+
+\begin{theorem}
+[{{\cite[Theorem 5.1]{ma_forward-backward_2007}}}]
+Under the assumptions of
+\cref{def:fbsde},
+the FBSDE
+\eqref{eq:fbsde}
+admits a unique solution
+$(X,Y,Z) \in \mathcal{L}^2(\mathbb{R}) \times \mathcal{L}^2(\mathbb{R}) \times \mathcal{L}^2(\mathbb{R})$.
+\end{theorem}
+
+Following the foundations that have been established at the moment, the plan for the research project is to develop numerical schemes to solve FBSDEs with a rough drift in the SDE associated.
+The equations that we are going to attack are of the form
+
+\begin{equation}
+\begin{dcases}
+X_t
+&=
+X_0 + \int_{0}^{t} b(s, X_s) ds + \int_{0}^{t} dW_s,
+\\
+Y_t
+&=
+g(X_T) - \int_{t}^{T} f (s, X_s, Y_s, Z_s) ds - \int_{t}^{T} Z_s dW_s.
+\end{dcases}
+\end{equation}
+
+We can see that the forward element of the equation above is exactly the same equation with distributional for which the numerical schemes have already been implemented.
+With the first equation solved we can proceed to solve the BSDE by plugging
+$X$
+into
+$f$
+and in the terminal condition.
+Since the distributional coefficient only appears in the forward equation, we can use known numerical methods for BSDEs such as the ones discussed in
+\cite[Section 3]{chessari_numerical_2021}.
+In the future we will study first the special case for
+$f = 0$
+which leaves us with an equation with the same form as
+\eqref{eq:simple_bsde}
+and then the component
+$Y$
+will be exactly the conditional expectation of the terminal condition
+$\xi$.
+
+Once the numerical methods for such equations are studied, the following task is to prove the convergence of the scheme.
+Let us remember that the convergence for numerical schemes for the forward equation is dependant on the convergence for the approximation of the distributional coefficient as proved in
+\cite{de_angelis_numerical_2020},
+then we expect to see a dependency in a similar fashion for the convergence rate of the solution for the BSDE.
+
+Further, we can have a system in which the BSDE contains a rough driver, the system would be
+
+\begin{equation}
+\begin{dcases}
+X_t
+&=
+X_0 + \int_{0}^{t} dW_s,
+\\
+Y_t,
+&=
+g(X_T) + \int_{t}^{T} b(s, X_s) Z_s ds+ \int_{t}^{T} f (s, X_s, Y_s, Z_s) ds - \int_{t}^{T} Z_s dW_s.
+\end{dcases}
+\end{equation}
+
+This is a completely new problem, and we aim to come up with schemes to solve these kind of BSDEs.
+The first approach could be to use the techniques from
+\cite{de_angelis_numerical_2020}
+to deal with the coefficient
+$b$
+and then use known methods for BSDEs.
+Numerically we can always try to adapt the schemes that are already known, however the theoretical results of convergence might be more challenging, and that should be the next big step for the project.
+
+Another problem that is of our interest is the case of an SDE with a rough coefficient just as the one for which the numerical methods have been implemented, but with the difference of if being driven by a different process than a regular Brownian motion.
+Namely, we can have an equation driven by a fractional Brownian motion, that is different to the one used to approximate the distributional coefficient.
+Such equation reads
+\begin{equation}
+X_t = X_0 + \int_{0}^{t} b(s, X_s) ds + \int_{0}^{t} dW^{H}_{s}.
+\end{equation}
+Results in this direction can be seen in
+\cite{butkovsky_approximation_2021,dareiotis_regularisation_2020}
+where theoretical rates of convergence for the equation above have been given, in particular in
+\cite{dareiotis_regularisation_2020}
+it is discussed how regardless of the regularity of the drift
+$b$,
+it is possible to obtain a rate of convergence
+$\nicefrac{1}{2} + \epsilon$
+provided that
+$b$
+is bounded, not necessarily Lipschitz.
+
+\section{Training record}
+\begin{itemize}
+\item \textbf{Taught work and readings}
+\begin{itemize}
+\item
+\textbf{Measure and Integration Theory}. Collegio Carlo Alberto. Turin, Italy. January-February 2021. \textit{(Online)}. (Pass 65\%).
+\item
+\textbf{MATH5734M: Advanced Stochastic Calculus and Applications to Finance}. University
+of Leeds. Spring Semester. 20 credits. (Pass 72\%).
+\item
+Reading of \cite[Sections 3.2, 3.3, 5.2]{karatzas_brownian_1991} as complement for MATH5734M.
+\end{itemize}
+\item \textbf{Seminar series}
+\begin{itemize}
+\item
+\textbf{Seminar Series on Probability and Financial Mathematics}. University of Leeds. Leeds, UK. \textit{(Online)}. 2020/2021.
+\item
+\textbf{Seminar Series on Probability and Financial Mathematics}. University of Leeds. Leeds, UK. \textit{(Online)}. 2021/2022.
+\end{itemize}
+\item \textbf{Conferences}
+\begin{itemize}
+\item
+\textbf{Stochastic Processes and Their Friends}. University of Leeds. Leeds, UK. \textit{(Online)}. 18-19 March 2021.
+\item
+\textbf{Conference Beyond the Boundaries}. University of Leeds. Leeds, UK. \textit{(Online)}. 4-7 May 2021.
+\item
+\textbf{British Early Career Mathematicians' Colloquium}. University of Birmingham. Birmingham, UK. \textit{(Online)}. 15-16 July 2021.
+\item
+\textbf{6th Berlin Workshop for Young Researchers on Mathematical Finance}. Humboldt-Universität zu Berlin. Berlin, Germany. \textit{(Online)}. 23-25 August 2021.
+\item
+\textbf{Bath Mathematical Symposium on PDE and Randomness: Summer School}. University of Bath. Bath, UK. \textit{(Online)}. 1-3 September 2021.
+\end{itemize}
+\end{itemize}
+\printbibliography
+\end{document}

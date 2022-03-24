@@ -1,0 +1,707 @@
+% $ biblatex auxiliary file $
+% $ biblatex bbl format version 3.1 $
+% Do not modify the above lines!
+%
+% This is an auxiliary file used by the 'biblatex' package.
+% This file may safely be deleted. It will be recreated by
+% biber as required.
+%
+\begingroup
+\makeatletter
+\@ifundefined{ver@biblatex.sty}
+  {\@latex@error
+     {Missing 'biblatex' package}
+     {The bibliography requires the 'biblatex' package.}
+      \aftergroup\endinput}
+  {}
+\endgroup
+
+
+\refsection{0}
+  \datalist[entry]{nty/global//global/global}
+    \entry{butkovsky_approximation_2021}{article}{}
+      \name{author}{3}{}{%
+        {{hash=8825401ade23dd677266156fc2702142}{%
+           family={Butkovsky},
+           familyi={B\bibinitperiod},
+           given={Oleg},
+           giveni={O\bibinitperiod}}}%
+        {{hash=7bd63135707d63eec31686a2156f7f4c}{%
+           family={Dareiotis},
+           familyi={D\bibinitperiod},
+           given={Konstantinos},
+           giveni={K\bibinitperiod}}}%
+        {{hash=54d54ebe8074ef5d7eb29680bfc321a1}{%
+           family={Gerencsér},
+           familyi={G\bibinitperiod},
+           given={Máté},
+           giveni={M\bibinitperiod}}}%
+      }
+      \strng{namehash}{038281d7c94fe72257cb827e12fe88d2}
+      \strng{fullhash}{038281d7c94fe72257cb827e12fe88d2}
+      \strng{bibnamehash}{038281d7c94fe72257cb827e12fe88d2}
+      \strng{authorbibnamehash}{038281d7c94fe72257cb827e12fe88d2}
+      \strng{authornamehash}{038281d7c94fe72257cb827e12fe88d2}
+      \strng{authorfullhash}{038281d7c94fe72257cb827e12fe88d2}
+      \field{sortinit}{B}
+      \field{sortinithash}{d7095fff47cda75ca2589920aae98399}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{shorttitle}
+      \field{abstract}{Abstract We give a new take on the error analysis of approximations of stochastic differential equations ({SDEs}), utilizing and developing the stochastic sewing lemma of Lê (Electron J Probab 25:55, 2020. 10.1214/20-{EJP}442 ). This approach allows one to exploit regularization by noise effects in obtaining convergence rates. In our first application we show convergence (to our knowledge for the first time) of the Euler–Maruyama scheme for {SDEs} driven by fractional Brownian motions with non-regular drift. When the Hurst parameter is \$\$H{\textbackslash}in (0,1)\$\$ H ∈ ( 0 , 1 ) and the drift is \$\${\textbackslash}mathcal \{C\}{\textasciicircum}{\textbackslash}alpha \$\$ C α , \$\${\textbackslash}alpha {\textbackslash}in [0,1]\$\$ α ∈ [ 0 , 1 ] and \$\${\textbackslash}alpha {>}1-1/(2H)\$\$ α {>} 1 - 1 / ( 2 H ) , we show the strong \$\$L\_p\$\$ L p and almost sure rates of convergence to be \$\$((1/2+{\textbackslash}alpha H){\textbackslash}wedge 1) -{\textbackslash}varepsilon \$\$ ( ( 1 / 2 + α H ) ∧ 1 ) - ε , for any \$\${\textbackslash}varepsilon {>}0\$\$ ε {>} 0 . Our conditions on the regularity of the drift are optimal in the sense that they coincide with the conditions needed for the strong uniqueness of solutions from Catellier and Gubinelli (Stoch Process Appl 126(8):2323–2366, 2016. 10.1016/j.spa.2016.02.002 ). In a second application we consider the approximation of {SDEs} driven by multiplicative standard Brownian noise where we derive the almost optimal rate of convergence \$\$1/2-{\textbackslash}varepsilon \$\$ 1 / 2 - ε of the Euler–Maruyama scheme for \$\${\textbackslash}mathcal \{C\}{\textasciicircum}{\textbackslash}alpha \$\$ C α drift, for any \$\${\textbackslash}varepsilon ,{\textbackslash}alpha {>}0\$\$ ε , α {>} 0 .}
+      \field{day}{30}
+      \field{issn}{0178-8051, 1432-2064}
+      \field{journaltitle}{Probability Theory and Related Fields}
+      \field{langid}{english}
+      \field{month}{7}
+      \field{shortjournal}{Probab. Theory Relat. Fields}
+      \field{shorttitle}{Approximation of {SDEs}}
+      \field{title}{Approximation of {SDEs}: a stochastic sewing approach}
+      \field{urlday}{28}
+      \field{urlmonth}{10}
+      \field{urlyear}{2021}
+      \field{year}{2021}
+      \field{dateera}{ce}
+      \field{urldateera}{ce}
+      \verb{doi}
+      \verb 10.1007/s00440-021-01080-2
+      \endverb
+      \verb{file}
+      \verb Full Text:C\:\\Users\\mmlmcj\\Zotero\\storage\\BEE4PPTT\\Butkovsky et al. - 2021 - Approximation of SDEs a stochastic sewing approac.pdf:application/pdf
+      \endverb
+      \verb{urlraw}
+      \verb https://link.springer.com/10.1007/s00440-021-01080-2
+      \endverb
+      \verb{url}
+      \verb https://link.springer.com/10.1007/s00440-021-01080-2
+      \endverb
+    \endentry
+    \entry{chessari_numerical_2021}{article}{}
+      \name{author}{2}{}{%
+        {{hash=c1d0f307f0c2d7d48bb314367196e0e9}{%
+           family={Chessari},
+           familyi={C\bibinitperiod},
+           given={Jared},
+           giveni={J\bibinitperiod}}}%
+        {{hash=fd042e1f6aa8f34fe4594b6276a466d5}{%
+           family={Kawai},
+           familyi={K\bibinitperiod},
+           given={Reiichiro},
+           giveni={R\bibinitperiod}}}%
+      }
+      \strng{namehash}{26578502d633ea64b276f001e84eafaf}
+      \strng{fullhash}{26578502d633ea64b276f001e84eafaf}
+      \strng{bibnamehash}{26578502d633ea64b276f001e84eafaf}
+      \strng{authorbibnamehash}{26578502d633ea64b276f001e84eafaf}
+      \strng{authornamehash}{26578502d633ea64b276f001e84eafaf}
+      \strng{authorfullhash}{26578502d633ea64b276f001e84eafaf}
+      \field{sortinit}{C}
+      \field{sortinithash}{4d103a86280481745c9c897c925753c0}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{shorttitle}
+      \field{abstract}{Backwards Stochastic Differential Equations ({BSDEs}) have been widely employed in various areas of applied and financial mathematics. In particular, {BSDEs} appear extensively in the pricing and hedging of financial derivatives, stochastic optimal control problems and optimal stopping problems. Most {BSDEs} cannot be solved analytically and thus numerical methods must be applied in order to approximate their solutions. There have been many numerical methods proposed over the past few decades, for the most part, in a complex and scattered manner, with each requiring a variety of different and similar assumptions and conditions. The aim of the present paper is thus to systematically survey various numerical methods for {BSDEs}, and in particular, compare and categorise them. To this end, we focus on the core features of each method: the main assumptions, the numerical algorithm itself, key convergence properties and advantages and disadvantages, in order to provide an exhaustive up-to-date coverage of numerical methods for {BSDEs}, with insightful summaries of each and useful comparison and categorization.}
+      \field{day}{21}
+      \field{eprinttype}{arxiv}
+      \field{journaltitle}{{arXiv}:2101.08936 [cs, math]}
+      \field{month}{1}
+      \field{shorttitle}{Numerical Methods for Backward Stochastic Differential Equations}
+      \field{title}{Numerical Methods for Backward Stochastic Differential Equations: A Survey}
+      \field{urlday}{11}
+      \field{urlmonth}{10}
+      \field{urlyear}{2021}
+      \field{year}{2021}
+      \field{dateera}{ce}
+      \field{urldateera}{ce}
+      \verb{eprint}
+      \verb 2101.08936
+      \endverb
+      \verb{file}
+      \verb arXiv Fulltext PDF:C\:\\Users\\mmlmcj\\Zotero\\storage\\AY2GIYKT\\Chessari and Kawai - 2021 - Numerical Methods for Backward Stochastic Differen.pdf:application/pdf;arXiv.org Snapshot:C\:\\Users\\mmlmcj\\Zotero\\storage\\LHSLNGX2\\2101.html:text/html
+      \endverb
+      \verb{urlraw}
+      \verb http://arxiv.org/abs/2101.08936
+      \endverb
+      \verb{url}
+      \verb http://arxiv.org/abs/2101.08936
+      \endverb
+      \keyw{Mathematics - Numerical Analysis,Mathematics - Probability,65C30,65C05,93E24,49L20,60H07}
+    \endentry
+    \entry{dareiotis_regularisation_2020}{article}{}
+      \name{author}{2}{}{%
+        {{hash=7bd63135707d63eec31686a2156f7f4c}{%
+           family={Dareiotis},
+           familyi={D\bibinitperiod},
+           given={Konstantinos},
+           giveni={K\bibinitperiod}}}%
+        {{hash=54d54ebe8074ef5d7eb29680bfc321a1}{%
+           family={Gerencsér},
+           familyi={G\bibinitperiod},
+           given={Máté},
+           giveni={M\bibinitperiod}}}%
+      }
+      \strng{namehash}{2ec4460a5ada3d9b97a2ccf2d8565cc8}
+      \strng{fullhash}{2ec4460a5ada3d9b97a2ccf2d8565cc8}
+      \strng{bibnamehash}{2ec4460a5ada3d9b97a2ccf2d8565cc8}
+      \strng{authorbibnamehash}{2ec4460a5ada3d9b97a2ccf2d8565cc8}
+      \strng{authornamehash}{2ec4460a5ada3d9b97a2ccf2d8565cc8}
+      \strng{authorfullhash}{2ec4460a5ada3d9b97a2ccf2d8565cc8}
+      \field{sortinit}{D}
+      \field{sortinithash}{6f385f66841fb5e82009dc833c761848}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{abstract}{The strong rate of convergence of the Euler-Maruyama scheme for nondegenerate {SDEs} with irregular drift coeﬃcients is considered. In the case of α-H¨older drift in the recent literature the rate α/2 was proved in many related situations. By exploiting the regularising eﬀect of the noise more eﬃciently, we show that the rate is in fact arbitrarily close to 1/2 for all α {>} 0. The result extends to Dini continuous coeﬃcients, while in d = 1 also to all bounded measurable coeﬃcients.}
+      \field{day}{1}
+      \field{eprinttype}{arxiv}
+      \field{issn}{1083-6489}
+      \field{issue}{none}
+      \field{journaltitle}{Electronic Journal of Probability}
+      \field{langid}{english}
+      \field{month}{1}
+      \field{shortjournal}{Electron. J. Probab.}
+      \field{title}{On the regularisation of the noise for the Euler-Maruyama scheme with irregular drift}
+      \field{urlday}{30}
+      \field{urlmonth}{7}
+      \field{urlyear}{2021}
+      \field{volume}{25}
+      \field{year}{2020}
+      \field{dateera}{ce}
+      \field{urldateera}{ce}
+      \verb{doi}
+      \verb 10.1214/20-EJP479
+      \endverb
+      \verb{eprint}
+      \verb 1812.04583
+      \endverb
+      \verb{file}
+      \verb Dareiotis and Gerencsér - 2020 - On the regularisation of the noise for the Euler-M.pdf:C\:\\Users\\mmlmcj\\Zotero\\storage\\L2ERSCPU\\Dareiotis and Gerencsér - 2020 - On the regularisation of the noise for the Euler-M.pdf:application/pdf
+      \endverb
+      \verb{urlraw}
+      \verb http://arxiv.org/abs/1812.04583
+      \endverb
+      \verb{url}
+      \verb http://arxiv.org/abs/1812.04583
+      \endverb
+      \keyw{Mathematics - Numerical Analysis,Mathematics - Probability,60H35,60H10,65C30}
+    \endentry
+    \entry{dareiotis_quantifying_2021}{article}{}
+      \name{author}{3}{}{%
+        {{hash=7bd63135707d63eec31686a2156f7f4c}{%
+           family={Dareiotis},
+           familyi={D\bibinitperiod},
+           given={Konstantinos},
+           giveni={K\bibinitperiod}}}%
+        {{hash=54d54ebe8074ef5d7eb29680bfc321a1}{%
+           family={Gerencsér},
+           familyi={G\bibinitperiod},
+           given={Máté},
+           giveni={M\bibinitperiod}}}%
+        {{hash=2084d0d761bc6bf0cdbf0cb032536d61}{%
+           family={Lê},
+           familyi={L\bibinitperiod},
+           given={Khoa},
+           giveni={K\bibinitperiod}}}%
+      }
+      \strng{namehash}{081ab0218db5ea04f17e44f90bad4d5a}
+      \strng{fullhash}{081ab0218db5ea04f17e44f90bad4d5a}
+      \strng{bibnamehash}{081ab0218db5ea04f17e44f90bad4d5a}
+      \strng{authorbibnamehash}{081ab0218db5ea04f17e44f90bad4d5a}
+      \strng{authornamehash}{081ab0218db5ea04f17e44f90bad4d5a}
+      \strng{authorfullhash}{081ab0218db5ea04f17e44f90bad4d5a}
+      \field{sortinit}{D}
+      \field{sortinithash}{6f385f66841fb5e82009dc833c761848}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{abstract}{We derive optimal strong convergence rates for the Euler-Maruyama scheme approximating multidimensional {SDEs} with multiplicative noise without imposing any regularity condition on the drift coefficient. In case the noise is additive, we show that Sobolev regularity can be leveraged to obtain improved rate: drifts with regularity of order \${\textbackslash}alpha {\textbackslash}in (0,1)\$ lead to rate \$(1+{\textbackslash}alpha)/2\$.}
+      \field{day}{28}
+      \field{eprinttype}{arxiv}
+      \field{journaltitle}{{arXiv}:2101.12185 [math]}
+      \field{month}{1}
+      \field{title}{Quantifying a convergence theorem of Gy{\textbackslash}"ongy and Krylov}
+      \field{urlday}{19}
+      \field{urlmonth}{11}
+      \field{urlyear}{2021}
+      \field{year}{2021}
+      \field{dateera}{ce}
+      \field{urldateera}{ce}
+      \verb{eprint}
+      \verb 2101.12185
+      \endverb
+      \verb{file}
+      \verb arXiv Fulltext PDF:C\:\\Users\\mmlmcj\\Zotero\\storage\\JBDQAH27\\Dareiotis et al. - 2021 - Quantifying a convergence theorem of Gyongy and .pdf:application/pdf;arXiv.org Snapshot:C\:\\Users\\mmlmcj\\Zotero\\storage\\NRK8QFPP\\2101.html:text/html
+      \endverb
+      \verb{urlraw}
+      \verb http://arxiv.org/abs/2101.12185
+      \endverb
+      \verb{url}
+      \verb http://arxiv.org/abs/2101.12185
+      \endverb
+      \keyw{Mathematics - Probability,60H10,60H50,65C30}
+    \endentry
+    \entry{de_angelis_numerical_2020}{article}{}
+      \name{author}{3}{}{%
+        {{hash=feb312efbea41f2cf236ac53b8b4ca55}{%
+           family={De\bibnamedelima Angelis},
+           familyi={D\bibinitperiod\bibinitdelim A\bibinitperiod},
+           given={Tiziano},
+           giveni={T\bibinitperiod}}}%
+        {{hash=af46b07fcf6152ffdcfce0179055e534}{%
+           family={Germain},
+           familyi={G\bibinitperiod},
+           given={Maximilien},
+           giveni={M\bibinitperiod}}}%
+        {{hash=bb18514458b38464ec17368411da3f72}{%
+           family={Issoglio},
+           familyi={I\bibinitperiod},
+           given={Elena},
+           giveni={E\bibinitperiod}}}%
+      }
+      \strng{namehash}{be7fe7711dcb9f6b7dc10055377e556d}
+      \strng{fullhash}{be7fe7711dcb9f6b7dc10055377e556d}
+      \strng{bibnamehash}{be7fe7711dcb9f6b7dc10055377e556d}
+      \strng{authorbibnamehash}{be7fe7711dcb9f6b7dc10055377e556d}
+      \strng{authornamehash}{be7fe7711dcb9f6b7dc10055377e556d}
+      \strng{authorfullhash}{be7fe7711dcb9f6b7dc10055377e556d}
+      \field{sortinit}{D}
+      \field{sortinithash}{6f385f66841fb5e82009dc833c761848}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{abstract}{In this paper we present a scheme for the numerical solution of one-dimensional stochastic diﬀerential equations ({SDEs}) whose drift belongs to a fractional Sobolev space of negative regularity (a subspace of Schwartz distributions). We obtain a rate of convergence in a suitable L1-norm and we implement the scheme numerically. To the best of our knowledge this is the ﬁrst paper to study (and implement) numerical solutions of {SDEs} whose drift lives in a space of distributions. As a byproduct we also obtain an estimate of the convergence rate for a numerical scheme applied to {SDEs} with drift in Lp-spaces with p ∈ (1, ∞).}
+      \field{day}{22}
+      \field{eprinttype}{arxiv}
+      \field{journaltitle}{{arXiv}:1906.11026 [cs, math]}
+      \field{langid}{english}
+      \field{month}{10}
+      \field{title}{A Numerical Scheme for Stochastic Differential Equations with Distributional Drift}
+      \field{urlday}{30}
+      \field{urlmonth}{7}
+      \field{urlyear}{2021}
+      \field{year}{2020}
+      \field{dateera}{ce}
+      \field{urldateera}{ce}
+      \verb{eprint}
+      \verb 1906.11026
+      \endverb
+      \verb{file}
+      \verb De Angelis et al. - 2020 - A numerical scheme for stochastic differential equ.pdf:C\:\\Users\\mmlmcj\\Zotero\\storage\\VWH5BU8A\\De Angelis et al. - 2020 - A numerical scheme for stochastic differential equ.pdf:application/pdf
+      \endverb
+      \verb{urlraw}
+      \verb http://arxiv.org/abs/1906.11026
+      \endverb
+      \verb{url}
+      \verb http://arxiv.org/abs/1906.11026
+      \endverb
+      \keyw{65C30 (Primary),65C20,60H10,46F99 (Secondary),Mathematics - Numerical Analysis,Mathematics - Probability}
+    \endentry
+    \entry{flandoli_multidimensional_2016}{article}{}
+      \name{author}{3}{}{%
+        {{hash=d3728bd6633b335af41cf70046fae570}{%
+           family={Flandoli},
+           familyi={F\bibinitperiod},
+           given={Franco},
+           giveni={F\bibinitperiod}}}%
+        {{hash=bb18514458b38464ec17368411da3f72}{%
+           family={Issoglio},
+           familyi={I\bibinitperiod},
+           given={Elena},
+           giveni={E\bibinitperiod}}}%
+        {{hash=4423fe088b018a3f7b8af4593382f5e2}{%
+           family={Russo},
+           familyi={R\bibinitperiod},
+           given={Francesco},
+           giveni={F\bibinitperiod}}}%
+      }
+      \strng{namehash}{1ac42bbc7a14425e3b513f5d43ebb495}
+      \strng{fullhash}{1ac42bbc7a14425e3b513f5d43ebb495}
+      \strng{bibnamehash}{1ac42bbc7a14425e3b513f5d43ebb495}
+      \strng{authorbibnamehash}{1ac42bbc7a14425e3b513f5d43ebb495}
+      \strng{authornamehash}{1ac42bbc7a14425e3b513f5d43ebb495}
+      \strng{authorfullhash}{1ac42bbc7a14425e3b513f5d43ebb495}
+      \field{sortinit}{F}
+      \field{sortinithash}{2638baaa20439f1b5a8f80c6c08a13b4}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{abstract}{This paper investigates a time-dependent multidimensional stochastic differential equation with drift being a distribution in a suitable class of Sobolev spaces with negative derivation order. This is done through a careful analysis of the corresponding Kolmogorov equation whose coefficient is a distribution.}
+      \field{day}{20}
+      \field{issn}{0002-9947, 1088-6850}
+      \field{journaltitle}{Transactions of the American Mathematical Society}
+      \field{langid}{english}
+      \field{month}{6}
+      \field{number}{3}
+      \field{shortjournal}{Trans. Amer. Math. Soc.}
+      \field{title}{Multidimensional stochastic differential equations with distributional drift}
+      \field{urlday}{13}
+      \field{urlmonth}{9}
+      \field{urlyear}{2021}
+      \field{volume}{369}
+      \field{year}{2016}
+      \field{dateera}{ce}
+      \field{urldateera}{ce}
+      \field{pages}{1665\bibrangedash 1688}
+      \range{pages}{24}
+      \verb{doi}
+      \verb 10.1090/tran/6729
+      \endverb
+      \verb{file}
+      \verb Full Text:C\:\\Users\\mmlmcj\\Zotero\\storage\\R2TS82RW\\Flandoli et al. - 2016 - Multidimensional stochastic differential equations.pdf:application/pdf
+      \endverb
+      \verb{urlraw}
+      \verb https://www.ams.org/tran/2017-369-03/S0002-9947-2016-06729-X/
+      \endverb
+      \verb{url}
+      \verb https://www.ams.org/tran/2017-369-03/S0002-9947-2016-06729-X/
+      \endverb
+    \endentry
+    \entry{glasserman_monte_2004}{book}{}
+      \name{author}{1}{}{%
+        {{hash=ad8512135fae00796ff8f92716d977c9}{%
+           family={Glasserman},
+           familyi={G\bibinitperiod},
+           given={Paul},
+           giveni={P\bibinitperiod}}}%
+      }
+      \list{location}{1}{%
+        {New York}%
+      }
+      \list{publisher}{1}{%
+        {Springer}%
+      }
+      \strng{namehash}{ad8512135fae00796ff8f92716d977c9}
+      \strng{fullhash}{ad8512135fae00796ff8f92716d977c9}
+      \strng{bibnamehash}{ad8512135fae00796ff8f92716d977c9}
+      \strng{authorbibnamehash}{ad8512135fae00796ff8f92716d977c9}
+      \strng{authornamehash}{ad8512135fae00796ff8f92716d977c9}
+      \strng{authorfullhash}{ad8512135fae00796ff8f92716d977c9}
+      \field{sortinit}{G}
+      \field{sortinithash}{32d67eca0634bf53703493fb1090a2e8}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{isbn}{978-0-387-00451-8}
+      \field{number}{53}
+      \field{pagetotal}{596}
+      \field{series}{Applications of mathematics}
+      \field{title}{Monte Carlo methods in financial engineering}
+      \field{year}{2004}
+      \field{dateera}{ce}
+      \keyw{Derivative securities,Financial engineering,Monte Carlo method}
+    \endentry
+    \entry{issoglio_transport_2013}{article}{}
+      \name{author}{1}{}{%
+        {{hash=bb18514458b38464ec17368411da3f72}{%
+           family={Issoglio},
+           familyi={I\bibinitperiod},
+           given={Elena},
+           giveni={E\bibinitperiod}}}%
+      }
+      \strng{namehash}{bb18514458b38464ec17368411da3f72}
+      \strng{fullhash}{bb18514458b38464ec17368411da3f72}
+      \strng{bibnamehash}{bb18514458b38464ec17368411da3f72}
+      \strng{authorbibnamehash}{bb18514458b38464ec17368411da3f72}
+      \strng{authornamehash}{bb18514458b38464ec17368411da3f72}
+      \strng{authorfullhash}{bb18514458b38464ec17368411da3f72}
+      \field{sortinit}{I}
+      \field{sortinithash}{8d291c51ee89b6cd86bf5379f0b151d8}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{abstract}{The main result of the present paper is a statement on existence, uniqueness and regularity for mild solutions to a parabolic transport diﬀusion type equation that involves a non-smooth coeﬃcient. We investigate related Cauchy problems on bounded smooth domains with Dirichlet boundary conditions by means of semigroup theory and ﬁxed point arguments. Main ingredients are the deﬁnition of a product of a function and a (not too irregular) distribution as well as a corresponding norm estimate. As an application, transport stochastic partial diﬀerential equations driven by fractional Brownian noises are considered in the pathwise sense.}
+      \field{issn}{0232-2064}
+      \field{journaltitle}{Zeitschrift für Analysis und ihre Anwendungen}
+      \field{langid}{english}
+      \field{number}{1}
+      \field{shortjournal}{Z. Anal. Anwend.}
+      \field{title}{Transport Equations with Fractal Noise - Existence, Uniqueness and Regularity of the Solution}
+      \field{urlday}{30}
+      \field{urlmonth}{7}
+      \field{urlyear}{2021}
+      \field{volume}{32}
+      \field{year}{2013}
+      \field{dateera}{ce}
+      \field{urldateera}{ce}
+      \field{pages}{37\bibrangedash 53}
+      \range{pages}{17}
+      \verb{doi}
+      \verb 10.4171/ZAA/1473
+      \endverb
+      \verb{file}
+      \verb Issoglio - 2013 - Transport Equations with Fractal Noise - Existence.pdf:C\:\\Users\\mmlmcj\\Zotero\\storage\\2VRZJHLM\\Issoglio - 2013 - Transport Equations with Fractal Noise - Existence.pdf:application/pdf
+      \endverb
+      \verb{urlraw}
+      \verb http://www.ems-ph.org/doi/10.4171/ZAA/1473
+      \endverb
+      \verb{url}
+      \verb http://www.ems-ph.org/doi/10.4171/ZAA/1473
+      \endverb
+    \endentry
+    \entry{karatzas_brownian_1991}{book}{}
+      \name{author}{2}{}{%
+        {{hash=f2b9c76604ea66b2ab28d18a454d3fbf}{%
+           family={Karatzas},
+           familyi={K\bibinitperiod},
+           given={Ioannis},
+           giveni={I\bibinitperiod}}}%
+        {{hash=9e110e7c548ab825117ed32cb12bdfd3}{%
+           family={Shreve},
+           familyi={S\bibinitperiod},
+           given={Steven\bibnamedelima E.},
+           giveni={S\bibinitperiod\bibinitdelim E\bibinitperiod}}}%
+      }
+      \list{location}{1}{%
+        {New York ;}%
+      }
+      \list{publisher}{1}{%
+        {Springer-Verlag}%
+      }
+      \strng{namehash}{53d5a81a823486de515935e3bf6435a6}
+      \strng{fullhash}{53d5a81a823486de515935e3bf6435a6}
+      \strng{bibnamehash}{53d5a81a823486de515935e3bf6435a6}
+      \strng{authorbibnamehash}{53d5a81a823486de515935e3bf6435a6}
+      \strng{authornamehash}{53d5a81a823486de515935e3bf6435a6}
+      \strng{authorfullhash}{53d5a81a823486de515935e3bf6435a6}
+      \field{sortinit}{K}
+      \field{sortinithash}{c02bf6bff1c488450c352b40f5d853ab}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{edition}{Second edition.}
+      \field{isbn}{0-387-97655-8}
+      \field{number}{113}
+      \field{series}{Graduate texts in mathematics}
+      \field{title}{Brownian motion and stochastic calculus}
+      \field{year}{1991}
+      \field{dateera}{ce}
+      \keyw{Brownian motion processes}
+    \endentry
+    \entry{kloeden_numerical_1999}{book}{}
+      \name{author}{2}{}{%
+        {{hash=7b32249850edcace60b1c231a0f5fb51}{%
+           family={Kloeden},
+           familyi={K\bibinitperiod},
+           given={Peter\bibnamedelima E.},
+           giveni={P\bibinitperiod\bibinitdelim E\bibinitperiod}}}%
+        {{hash=a4fb5859192206ba44cf72178b85abb6}{%
+           family={Platen},
+           familyi={P\bibinitperiod},
+           given={Eckhard},
+           giveni={E\bibinitperiod}}}%
+      }
+      \list{location}{1}{%
+        {Berlin ; New York}%
+      }
+      \list{publisher}{1}{%
+        {Springer}%
+      }
+      \strng{namehash}{0183f9b6362d5aa8d2faeea78d274490}
+      \strng{fullhash}{0183f9b6362d5aa8d2faeea78d274490}
+      \strng{bibnamehash}{0183f9b6362d5aa8d2faeea78d274490}
+      \strng{authorbibnamehash}{0183f9b6362d5aa8d2faeea78d274490}
+      \strng{authornamehash}{0183f9b6362d5aa8d2faeea78d274490}
+      \strng{authorfullhash}{0183f9b6362d5aa8d2faeea78d274490}
+      \field{sortinit}{K}
+      \field{sortinithash}{c02bf6bff1c488450c352b40f5d853ab}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{edition}{Corr. 3rd print}
+      \field{isbn}{978-3-540-54062-5}
+      \field{number}{23}
+      \field{pagetotal}{636}
+      \field{series}{Applications of mathematics}
+      \field{title}{Numerical solution of stochastic differential equations}
+      \field{year}{1999}
+      \field{dateera}{ce}
+      \keyw{Stochastic differential equations,Numerical solutions}
+    \endentry
+    \entry{ma_forward-backward_2007}{book}{}
+      \name{author}{2}{}{%
+        {{hash=f05c9943ec01866050a081e0656f6fc9}{%
+           family={Ma},
+           familyi={M\bibinitperiod},
+           given={Jin},
+           giveni={J\bibinitperiod}}}%
+        {{hash=f9d70f3c2c2541b9a22eb8859d1c10bf}{%
+           family={Yong},
+           familyi={Y\bibinitperiod},
+           given={J.},
+           giveni={J\bibinitperiod}}}%
+      }
+      \list{location}{1}{%
+        {Berlin ; New York}%
+      }
+      \list{publisher}{1}{%
+        {Springer}%
+      }
+      \strng{namehash}{70aadfe265a7e23d85495bfe44ebc8ac}
+      \strng{fullhash}{70aadfe265a7e23d85495bfe44ebc8ac}
+      \strng{bibnamehash}{70aadfe265a7e23d85495bfe44ebc8ac}
+      \strng{authorbibnamehash}{70aadfe265a7e23d85495bfe44ebc8ac}
+      \strng{authornamehash}{70aadfe265a7e23d85495bfe44ebc8ac}
+      \strng{authorfullhash}{70aadfe265a7e23d85495bfe44ebc8ac}
+      \field{sortinit}{M}
+      \field{sortinithash}{4625c616857f13d17ce56f7d4f97d451}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{edition}{Corr. 3rd print}
+      \field{isbn}{978-3-540-65960-0}
+      \field{number}{1702}
+      \field{pagetotal}{270}
+      \field{series}{Lecture notes in mathematics}
+      \field{title}{Forward-backward stochastic differential equations and their applications}
+      \field{year}{2007}
+      \field{dateera}{ce}
+      \keyw{Stochastic differential equations}
+    \endentry
+    \entry{platen_introduction_1999}{article}{}
+      \name{author}{1}{}{%
+        {{hash=a4fb5859192206ba44cf72178b85abb6}{%
+           family={Platen},
+           familyi={P\bibinitperiod},
+           given={Eckhard},
+           giveni={E\bibinitperiod}}}%
+      }
+      \strng{namehash}{a4fb5859192206ba44cf72178b85abb6}
+      \strng{fullhash}{a4fb5859192206ba44cf72178b85abb6}
+      \strng{bibnamehash}{a4fb5859192206ba44cf72178b85abb6}
+      \strng{authorbibnamehash}{a4fb5859192206ba44cf72178b85abb6}
+      \strng{authornamehash}{a4fb5859192206ba44cf72178b85abb6}
+      \strng{authorfullhash}{a4fb5859192206ba44cf72178b85abb6}
+      \field{sortinit}{P}
+      \field{sortinithash}{ff3bcf24f47321b42cb156c2cc8a8422}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{abstract}{This paper aims to give an overview and summary of numerical methods for the solution of stochastic differential equations. It covers discrete time strong and weak approximation methods that are suitable for different applications. A range of approaches and results is discussed within a unified framework. On the one hand, these methods can be interpreted as generalizing the well-developed theory on numerical analysis for deterministic ordinary differential equations. On the other hand they highlight the specific stochastic nature of the equations. In some cases these methods lead to completely new and challenging problems.}
+      \field{issn}{1474-0508, 0962-4929}
+      \field{journaltitle}{Acta Numerica}
+      \field{langid}{english}
+      \field{month}{1}
+      \field{note}{Publisher: Cambridge University Press}
+      \field{title}{An introduction to numerical methods for stochastic differential equations}
+      \field{urlday}{11}
+      \field{urlmonth}{9}
+      \field{urlyear}{2021}
+      \field{volume}{8}
+      \field{year}{1999}
+      \field{dateera}{ce}
+      \field{urldateera}{ce}
+      \field{pages}{197\bibrangedash 246}
+      \range{pages}{50}
+      \verb{doi}
+      \verb 10.1017/S0962492900002920
+      \endverb
+      \verb{file}
+      \verb Full Text PDF:C\:\\Users\\mmlmcj\\Zotero\\storage\\5AYRWJQC\\Platen - 1999 - An introduction to numerical methods for stochasti.pdf:application/pdf;Snapshot:C\:\\Users\\mmlmcj\\Zotero\\storage\\36FVI5LR\\34AEA7B7D62931AE332FD168CDA3B8AB.html:text/html
+      \endverb
+      \verb{urlraw}
+      \verb https://www.cambridge.org/core/journals/acta-numerica/article/an-introduction-to-numerical-methods-for-stochastic-differential-equations/34AEA7B7D62931AE332FD168CDA3B8AB
+      \endverb
+      \verb{url}
+      \verb https://www.cambridge.org/core/journals/acta-numerica/article/an-introduction-to-numerical-methods-for-stochastic-differential-equations/34AEA7B7D62931AE332FD168CDA3B8AB
+      \endverb
+    \endentry
+    \entry{triebel_bases_2010}{book}{}
+      \name{author}{1}{}{%
+        {{hash=568aca796089836cf476ed7a5b8faa44}{%
+           family={Triebel},
+           familyi={T\bibinitperiod},
+           given={Hans},
+           giveni={H\bibinitperiod}}}%
+      }
+      \list{location}{1}{%
+        {Zürich}%
+      }
+      \list{publisher}{1}{%
+        {European Mathematical Society}%
+      }
+      \strng{namehash}{568aca796089836cf476ed7a5b8faa44}
+      \strng{fullhash}{568aca796089836cf476ed7a5b8faa44}
+      \strng{bibnamehash}{568aca796089836cf476ed7a5b8faa44}
+      \strng{authorbibnamehash}{568aca796089836cf476ed7a5b8faa44}
+      \strng{authornamehash}{568aca796089836cf476ed7a5b8faa44}
+      \strng{authorfullhash}{568aca796089836cf476ed7a5b8faa44}
+      \field{extraname}{1}
+      \field{sortinit}{T}
+      \field{sortinithash}{9af77f0292593c26bde9a56e688eaee9}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{isbn}{978-3-03719-085-2}
+      \field{note}{{OCLC}: ocn640095745}
+      \field{number}{11}
+      \field{pagetotal}{296}
+      \field{series}{{EMS} tracts in mathematics}
+      \field{title}{Bases in function spaces, sampling, discrepancy, numerical integration}
+      \field{year}{2010}
+      \field{dateera}{ce}
+      \keyw{Basis {<}Mathematik{>},Diskrepanz,Function spaces,Funktionenraum,Linear topological spaces,Numerische Integration}
+    \endentry
+    \entry{triebel_theory_2010}{book}{}
+      \name{author}{1}{}{%
+        {{hash=568aca796089836cf476ed7a5b8faa44}{%
+           family={Triebel},
+           familyi={T\bibinitperiod},
+           given={Hans},
+           giveni={H\bibinitperiod}}}%
+      }
+      \list{location}{1}{%
+        {Basel ; Boston}%
+      }
+      \list{publisher}{1}{%
+        {Birkhäuser Verlag}%
+      }
+      \strng{namehash}{568aca796089836cf476ed7a5b8faa44}
+      \strng{fullhash}{568aca796089836cf476ed7a5b8faa44}
+      \strng{bibnamehash}{568aca796089836cf476ed7a5b8faa44}
+      \strng{authorbibnamehash}{568aca796089836cf476ed7a5b8faa44}
+      \strng{authornamehash}{568aca796089836cf476ed7a5b8faa44}
+      \strng{authorfullhash}{568aca796089836cf476ed7a5b8faa44}
+      \field{extraname}{2}
+      \field{sortinit}{T}
+      \field{sortinithash}{9af77f0292593c26bde9a56e688eaee9}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{isbn}{978-3-0346-0415-4 978-3-0346-0416-1}
+      \field{note}{{OCLC}: ocn688969723}
+      \field{pagetotal}{285}
+      \field{series}{Modern Birkhäuser classics}
+      \field{title}{Theory of function spaces}
+      \field{year}{2010}
+      \field{dateera}{ce}
+      \keyw{Function spaces,Fourier analysis}
+    \endentry
+    \entry{zhang_backward_2017}{book}{}
+      \name{author}{1}{}{%
+        {{hash=17f34ccb8b943a37fda9e3c1e404f6d9}{%
+           family={Zhang},
+           familyi={Z\bibinitperiod},
+           given={Jianfeng},
+           giveni={J\bibinitperiod}}}%
+      }
+      \list{location}{1}{%
+        {New York, {NY}}%
+      }
+      \list{publisher}{1}{%
+        {Springer New York : Imprint: Springer}%
+      }
+      \strng{namehash}{17f34ccb8b943a37fda9e3c1e404f6d9}
+      \strng{fullhash}{17f34ccb8b943a37fda9e3c1e404f6d9}
+      \strng{bibnamehash}{17f34ccb8b943a37fda9e3c1e404f6d9}
+      \strng{authorbibnamehash}{17f34ccb8b943a37fda9e3c1e404f6d9}
+      \strng{authornamehash}{17f34ccb8b943a37fda9e3c1e404f6d9}
+      \strng{authorfullhash}{17f34ccb8b943a37fda9e3c1e404f6d9}
+      \field{sortinit}{Z}
+      \field{sortinithash}{96892c0b0a36bb8557c40c49813d48b3}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{shorttitle}
+      \field{abstract}{This book provides a systematic and accessible approach to stochastic differential equations, backward stochastic differential equations, and their connection with partial differential equations, as well as the recent development of the fully nonlinear theory, including nonlinear expectation, second order backward stochastic differential equations, and path dependent partial differential equations. Their main applications and numerical algorithms, as well as many exercises, are included. The book focuses on ideas and clarity, with most results having been solved from scratch and most theories being motivated from applications. It can be considered a starting point for junior researchers in the field, and can serve as a textbook for a two-semester graduate course in probability theory and stochastic analysis. It is also accessible for graduate students majoring in financial engineering}
+      \field{edition}{1st ed. 2017}
+      \field{isbn}{978-1-4939-7256-2}
+      \field{number}{86}
+      \field{pagetotal}{1}
+      \field{series}{Probability Theory and Stochastic Modelling}
+      \field{shorttitle}{Backward Stochastic Differential Equations}
+      \field{title}{Backward Stochastic Differential Equations: From Linear to Fully Nonlinear Theory}
+      \field{year}{2017}
+      \field{dateera}{ce}
+      \verb{doi}
+      \verb 10.1007/978-1-4939-7256-2
+      \endverb
+      \keyw{Probabilities,Numerical analysis,Economic theory,Economic Theory/Quantitative Economics/Mathematical Methods,Economics,Mathematical,Game theory,Game Theory,Economics,Social and Behav. Sciences,Numerical Analysis,Partial differential equations,Partial Differential Equations,Probability Theory and Stochastic Processes,Quantitative Finance}
+    \endentry
+  \enddatalist
+\endrefsection
+\endinput
+
